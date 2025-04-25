@@ -37,7 +37,72 @@ classdef prepro < matlab.apps.AppBase
 
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
-            
+            % 获取工作路径和文件夹名称
+            workPath = app.work_EditField.Value; % 获取工作路径
+            folderName = app.EditField.Value;    % 获取文件夹名称
+        
+            % 拼接完整路径
+            fullPath = fullfile(workPath, folderName);
+        
+            % 检查路径是否存在
+            if ~isfolder(fullPath)
+                uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                return;
+            end
+        
+            % 获取所有以 'sub' 开头的文件夹
+            subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'sub' 开头的文件夹
+            subFolderNames = {subFolders.name};          % 提取文件夹名称
+
+            % 开始计时
+            startTime = tic;
+        
+            % 遍历每个子文件夹
+            for i = 1:length(subFolderNames)
+                subFolder = subFolderNames{i};
+                subFolderPath = fullfile(fullPath, subFolder); % 获取子文件夹的完整路径
+                
+                change_format(subFolderPath, subFolder, workPath)
+
+                % 根据 CheckBox 的勾选状态调用对应的处理函数
+                if app.denoise_CheckBox.Value
+                    denoise(subFolderPath); % 调用降噪处理函数
+                end
+
+                if app.mask_CheckBox.Value
+                    maskProcessing(subFolderPath); % 调用 mask 处理函数
+                end
+                if app.T1corg_CheckBox.Value
+                    T1corgProcessing(subFolderPath); % 调用 T1 分割处理函数
+                end
+                if app.dwi_to_MNI_CheckBox.Value
+                    dwiToMNIProcessing(subFolderPath); % 调用 dwi_to_MNI 处理函数
+                end
+                if app.T1_to_MNI_CheckBox.Value
+                    T1ToMNIProcessing(subFolderPath); % 调用 T1_to_MNI 处理函数
+                end
+                if app.bias_CheckBox.Value
+                    biasProcessing(subFolderPath); % 调用 bias 场矫正处理函数
+                end
+                if app.headmove_CheckBox.Value
+                    headmoveProcessing(subFolderPath); % 调用头动矫正处理函数
+                end
+                if app.Gibbs_CheckBox.Value
+                    GibbsProcessing(subFolderPath); % 调用 Gibbs Ring 消除处理函数
+                end
+            end
+        
+            % 结束计时
+            elapsedTime = toc(startTime); % 获取处理总时间（秒）
+        
+            % 将处理时间转换为小时、分钟、秒
+            hours = floor(elapsedTime / 3600);
+            minutes = floor((elapsedTime - hours * 3600) / 60);
+            seconds = mod(elapsedTime, 60);
+        
+            % 显示处理完成提示和处理时间
+            uialert(app.UIFigure, ['处理完成' char(10) '共耗时：', num2str(hours), '小时 ', ...
+                num2str(minutes), '分钟 ', num2str(seconds), '秒'], '完成提示');
         end
 
         % Value changed function: denoise_CheckBox
@@ -92,7 +157,7 @@ classdef prepro < matlab.apps.AppBase
             end
         
             % 获取所有以 'sub' 开头的文件夹
-            subFolders = dir(fullfile(fullPath, 'sub*')); % 列出所有以 'sub' 开头的文件夹
+            subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'Sub' 开头的文件夹
             subFolderNames = {subFolders.name};          % 提取文件夹名称
         
             % 将文件夹名称添加到 sub_TextArea
