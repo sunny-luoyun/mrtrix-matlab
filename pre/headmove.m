@@ -1,6 +1,6 @@
 function [newpath,newstart] = headmove(path, name, work, startname)
     
-    b0 = fullfile(work, 'b0',name); 
+    b0 = fullfile(work, 'raw_b0',name); 
     mkdir(b0); 
     
     % 建立AP-PA配对

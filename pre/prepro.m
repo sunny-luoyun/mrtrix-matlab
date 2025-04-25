@@ -93,25 +93,25 @@ classdef prepro < matlab.apps.AppBase
                 if app.bias_CheckBox.Value
                     [currentPath,startname] = bias(currentPath, subFolder, workPath, startname); % 调用 bias 场矫正处理函数
                 end
+
+                % 检查是否需要进行 T1_to_MNI 处理
+                if app.T1_to_MNI_CheckBox.Value
+                    T1toMNI(subFolder, workPath); % 调用 T1_to_MNI 处理函数
+                end
+
+                % 检查是否需要进行 dwi_to_MNI 处理
+                if app.dwi_to_MNI_CheckBox.Value
+                    dwitoMNI(subFolder, workPath); % 调用 dwi_to_MNI 处理函数
+                end
         
                 % 检查是否需要进行 mask 处理
                 if app.mask_CheckBox.Value
-                    currentPath = maskProcessing(currentPath, subFolder, workPath, startname); % 调用 mask 处理函数
+                    mask(currentPath, subFolder, workPath, startname); % 调用 mask 处理函数
                 end
         
                 % 检查是否需要进行 T1 分割处理
                 if app.T1corg_CheckBox.Value
-                    currentPath = T1corgProcessing(currentPath); % 调用 T1 分割处理函数
-                end
-        
-                % 检查是否需要进行 dwi_to_MNI 处理
-                if app.dwi_to_MNI_CheckBox.Value
-                    currentPath = dwiToMNIProcessing(currentPath); % 调用 dwi_to_MNI 处理函数
-                end
-        
-                % 检查是否需要进行 T1_to_MNI 处理
-                if app.T1_to_MNI_CheckBox.Value
-                    currentPath = T1ToMNIProcessing(currentPath); % 调用 T1_to_MNI 处理函数
+                    T1corg(currentPath, subFolder, workPath, startname); % 调用 T1 分割处理函数
                 end
             end
             
