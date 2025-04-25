@@ -40,70 +40,86 @@ classdef prepro < matlab.apps.AppBase
         function start_ButtonPushed(app, event)
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
-            folderName = app.EditField.Value;    % 获取文件夹名称
-        
+            folderName = app.EditField.Value;    % 获取文件夹名称（起始文件夹）
+            
             % 拼接完整路径
             fullPath = fullfile(workPath, folderName);
-        
+            
             % 检查路径是否存在
             if ~isfolder(fullPath)
                 uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
                 return;
             end
-        
+            
             % 获取所有以 'sub' 开头的文件夹
             subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'sub' 开头的文件夹
             subFolderNames = {subFolders.name};          % 提取文件夹名称
-
+        
             % 开始计时
             startTime = tic;
-        
+            
             % 遍历每个子文件夹
             for i = 1:length(subFolderNames)
                 subFolder = subFolderNames{i};
                 subFolderPath = fullfile(fullPath, subFolder); % 获取子文件夹的完整路径
                 
+                % 初始化当前处理路径
+                currentPath = subFolderPath;
                 
-                % 根据 CheckBox 的勾选状态调用对应的处理函数
+                % 检查是否需要进行 change_format 处理
                 if app.format_CheckBox.Value
-                    change_format(subFolderPath, subFolder, workPath); % 调用格式转换函数
+                    currentPath = change_format(currentPath, subFolder, workPath); % 调用格式转换函数
                 end
-
+        
+                % 检查是否需要进行 denoise 处理
                 if app.denoise_CheckBox.Value
-                    denoise(subFolderPath, subFolder, workPath); % 调用降噪处理函数
+                    currentPath = denoise(currentPath, subFolder, workPath); % 调用降噪处理函数
                 end
-
+        
+                % 检查是否需要进行 mask 处理
                 if app.mask_CheckBox.Value
-                    maskProcessing(subFolderPath); % 调用 mask 处理函数
+                    currentPath = maskProcessing(currentPath); % 调用 mask 处理函数
                 end
+        
+                % 检查是否需要进行 T1 分割处理
                 if app.T1corg_CheckBox.Value
-                    T1corgProcessing(subFolderPath); % 调用 T1 分割处理函数
+                    currentPath = T1corgProcessing(currentPath); % 调用 T1 分割处理函数
                 end
+        
+                % 检查是否需要进行 dwi_to_MNI 处理
                 if app.dwi_to_MNI_CheckBox.Value
-                    dwiToMNIProcessing(subFolderPath); % 调用 dwi_to_MNI 处理函数
+                    currentPath = dwiToMNIProcessing(currentPath); % 调用 dwi_to_MNI 处理函数
                 end
+        
+                % 检查是否需要进行 T1_to_MNI 处理
                 if app.T1_to_MNI_CheckBox.Value
-                    T1ToMNIProcessing(subFolderPath); % 调用 T1_to_MNI 处理函数
+                    currentPath = T1ToMNIProcessing(currentPath); % 调用 T1_to_MNI 处理函数
                 end
+        
+                % 检查是否需要进行 bias 场矫正处理
                 if app.bias_CheckBox.Value
-                    biasProcessing(subFolderPath); % 调用 bias 场矫正处理函数
+                    currentPath = biasProcessing(currentPath); % 调用 bias 场矫正处理函数
                 end
+        
+                % 检查是否需要进行头动矫正处理
                 if app.headmove_CheckBox.Value
-                    headmoveProcessing(subFolderPath); % 调用头动矫正处理函数
+                    currentPath = headmoveProcessing(currentPath); % 调用头动矫正处理函数
                 end
+        
+                % 检查是否需要进行 Gibbs Ring 消除处理
                 if app.Gibbs_CheckBox.Value
-                    GibbsProcessing(subFolderPath); % 调用 Gibbs Ring 消除处理函数
+                    currentPath = GibbsProcessing(currentPath); % 调用 Gibbs Ring 消除处理函数
                 end
             end
-        
+            
             % 结束计时
             elapsedTime = toc(startTime); % 获取处理总时间（秒）
-        
+            
             % 将处理时间转换为小时、分钟、秒
             hours = floor(elapsedTime / 3600);
             minutes = floor((elapsedTime - hours * 3600) / 60);
             seconds = mod(elapsedTime, 60);
-        
+            
             % 显示处理完成提示和处理时间
             uialert(app.UIFigure, ['处理完成' char(10) '共耗时：', num2str(hours), '小时 ', ...
                 num2str(minutes), '分钟 ', num2str(seconds), '秒'], '完成提示');
