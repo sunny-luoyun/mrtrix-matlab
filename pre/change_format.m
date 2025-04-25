@@ -1,6 +1,6 @@
 % 格式转换，将nii.gz以及nii格式转化为mrtrix可处理的mif格式
 
-function newPath = change_format(path, name, work)
+function [newPath, newstart] = change_format(path, name, work)
     dwimif = fullfile(work, 'dwimif',name); 
     mkdir(dwimif); % 创建目录
 
@@ -18,5 +18,6 @@ function newPath = change_format(path, name, work)
     system(T1format);
 
     newPath = dwimif;
+    newstart = 'dwimif';
 end
 

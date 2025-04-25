@@ -65,20 +65,38 @@ classdef prepro < matlab.apps.AppBase
                 
                 % 初始化当前处理路径
                 currentPath = subFolderPath;
-                
+                startname = folderName;
+
                 % 检查是否需要进行 change_format 处理
                 if app.format_CheckBox.Value
-                    currentPath = change_format(currentPath, subFolder, workPath); % 调用格式转换函数
+                    [currentPath,startname] = change_format(currentPath, subFolder, workPath); % 调用格式转换函数
+                    
                 end
         
                 % 检查是否需要进行 denoise 处理
                 if app.denoise_CheckBox.Value
-                    currentPath = denoise(currentPath, subFolder, workPath); % 调用降噪处理函数
+                    [currentPath,startname] = denoise(currentPath, subFolder, workPath, startname); % 调用降噪处理函数
+                    
+                end
+
+                % 检查是否需要进行 Gibbs Ring 消除处理
+                if app.Gibbs_CheckBox.Value
+                    [currentPath,startname] = gibbs(currentPath, subFolder, workPath, startname); % 调用 Gibbs Ring 消除处理函数
+                end
+
+                % 检查是否需要进行头动矫正处理
+                if app.headmove_CheckBox.Value
+                    [currentPath,startname] = headmove(currentPath, subFolder, workPath, startname); % 调用头动矫正处理函数
+                end
+
+                % 检查是否需要进行 bias 场矫正处理
+                if app.bias_CheckBox.Value
+                    [currentPath,startname] = bias(currentPath, subFolder, workPath, startname); % 调用 bias 场矫正处理函数
                 end
         
                 % 检查是否需要进行 mask 处理
                 if app.mask_CheckBox.Value
-                    currentPath = maskProcessing(currentPath); % 调用 mask 处理函数
+                    currentPath = maskProcessing(currentPath, subFolder, workPath, startname); % 调用 mask 处理函数
                 end
         
                 % 检查是否需要进行 T1 分割处理
@@ -94,21 +112,6 @@ classdef prepro < matlab.apps.AppBase
                 % 检查是否需要进行 T1_to_MNI 处理
                 if app.T1_to_MNI_CheckBox.Value
                     currentPath = T1ToMNIProcessing(currentPath); % 调用 T1_to_MNI 处理函数
-                end
-        
-                % 检查是否需要进行 bias 场矫正处理
-                if app.bias_CheckBox.Value
-                    currentPath = biasProcessing(currentPath); % 调用 bias 场矫正处理函数
-                end
-        
-                % 检查是否需要进行头动矫正处理
-                if app.headmove_CheckBox.Value
-                    currentPath = headmoveProcessing(currentPath); % 调用头动矫正处理函数
-                end
-        
-                % 检查是否需要进行 Gibbs Ring 消除处理
-                if app.Gibbs_CheckBox.Value
-                    currentPath = GibbsProcessing(currentPath); % 调用 Gibbs Ring 消除处理函数
                 end
             end
             
