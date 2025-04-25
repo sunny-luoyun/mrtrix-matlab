@@ -3,6 +3,7 @@ classdef prepro < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure             matlab.ui.Figure
+        format_CheckBox      matlab.ui.control.CheckBox
         EditField            matlab.ui.control.EditField
         Label_2              matlab.ui.control.Label
         find_Button          matlab.ui.control.Button
@@ -62,11 +63,14 @@ classdef prepro < matlab.apps.AppBase
                 subFolder = subFolderNames{i};
                 subFolderPath = fullfile(fullPath, subFolder); % 获取子文件夹的完整路径
                 
-                change_format(subFolderPath, subFolder, workPath)
-
+                
                 % 根据 CheckBox 的勾选状态调用对应的处理函数
+                if app.format_CheckBox.Value
+                    change_format(subFolderPath, subFolder, workPath); % 调用格式转换函数
+                end
+
                 if app.denoise_CheckBox.Value
-                    denoise(subFolderPath); % 调用降噪处理函数
+                    denoise(subFolderPath, subFolder, workPath); % 调用降噪处理函数
                 end
 
                 if app.mask_CheckBox.Value
@@ -141,6 +145,18 @@ classdef prepro < matlab.apps.AppBase
             
         end
 
+        % Value changed function: mask_CheckBox
+        function mask_CheckBoxValueChanged(app, event)
+            value = app.mask_CheckBox.Value;
+            
+        end
+
+        % Value changed function: T1corg_CheckBox
+        function T1corg_CheckBoxValueChanged(app, event)
+            value = app.T1corg_CheckBox.Value;
+            
+        end
+
         % Button pushed function: find_Button
         function find_ButtonPushed(app, event)
             % 获取工作路径和文件夹名称
@@ -164,15 +180,9 @@ classdef prepro < matlab.apps.AppBase
             app.sub_TextArea.Value = strjoin(subFolderNames, newline); % 将文件夹名称用换行符连接后显示
         end
 
-        % Value changed function: mask_CheckBox
-        function mask_CheckBoxValueChanged(app, event)
-            value = app.mask_CheckBox.Value;
-            
-        end
-
-        % Value changed function: T1corg_CheckBox
-        function T1corg_CheckBoxValueChanged(app, event)
-            value = app.T1corg_CheckBox.Value;
+        % Value changed function: format_CheckBox
+        function format_CheckBoxValueChanged(app, event)
+            value = app.format_CheckBox.Value;
             
         end
     end
@@ -197,7 +207,7 @@ classdef prepro < matlab.apps.AppBase
             % Create sub_TextArea
             app.sub_TextArea = uitextarea(app.UIFigure);
             app.sub_TextArea.Editable = 'off';
-            app.sub_TextArea.Position = [47 148 277 65];
+            app.sub_TextArea.Position = [41 148 256 65];
 
             % Create Label
             app.Label = uilabel(app.UIFigure);
@@ -220,49 +230,49 @@ classdef prepro < matlab.apps.AppBase
             app.denoise_CheckBox = uicheckbox(app.UIFigure);
             app.denoise_CheckBox.ValueChangedFcn = createCallbackFcn(app, @denoise_CheckBoxValueChanged, true);
             app.denoise_CheckBox.Text = '降噪';
-            app.denoise_CheckBox.Position = [39 109 46 22];
+            app.denoise_CheckBox.Position = [47 109 46 22];
 
             % Create Gibbs_CheckBox
             app.Gibbs_CheckBox = uicheckbox(app.UIFigure);
             app.Gibbs_CheckBox.ValueChangedFcn = createCallbackFcn(app, @Gibbs_CheckBoxValueChanged, true);
             app.Gibbs_CheckBox.Text = '消除Gibbs Ring';
-            app.Gibbs_CheckBox.Position = [108 109 106 22];
+            app.Gibbs_CheckBox.Position = [127 109 106 22];
 
             % Create headmove_CheckBox
             app.headmove_CheckBox = uicheckbox(app.UIFigure);
             app.headmove_CheckBox.ValueChangedFcn = createCallbackFcn(app, @headmove_CheckBoxValueChanged, true);
             app.headmove_CheckBox.Text = '头动矫正，变形矫正';
-            app.headmove_CheckBox.Position = [236 109 130 22];
+            app.headmove_CheckBox.Position = [239 109 130 22];
 
             % Create bias_CheckBox
             app.bias_CheckBox = uicheckbox(app.UIFigure);
             app.bias_CheckBox.ValueChangedFcn = createCallbackFcn(app, @bias_CheckBoxValueChanged, true);
             app.bias_CheckBox.Text = 'bias场矫正';
-            app.bias_CheckBox.Position = [40 64 80 22];
+            app.bias_CheckBox.Position = [47 64 80 22];
 
             % Create T1_to_MNI_CheckBox
             app.T1_to_MNI_CheckBox = uicheckbox(app.UIFigure);
             app.T1_to_MNI_CheckBox.ValueChangedFcn = createCallbackFcn(app, @T1_to_MNI_CheckBoxValueChanged, true);
             app.T1_to_MNI_CheckBox.Text = 'T1_to_MNI';
-            app.T1_to_MNI_CheckBox.Position = [133 64 80 22];
+            app.T1_to_MNI_CheckBox.Position = [139 64 80 22];
 
             % Create dwi_to_MNI_CheckBox
             app.dwi_to_MNI_CheckBox = uicheckbox(app.UIFigure);
             app.dwi_to_MNI_CheckBox.ValueChangedFcn = createCallbackFcn(app, @dwi_to_MNI_CheckBoxValueChanged, true);
             app.dwi_to_MNI_CheckBox.Text = 'dwi_to_MNI';
-            app.dwi_to_MNI_CheckBox.Position = [237 64 86 22];
+            app.dwi_to_MNI_CheckBox.Position = [240 64 86 22];
 
             % Create T1corg_CheckBox
             app.T1corg_CheckBox = uicheckbox(app.UIFigure);
             app.T1corg_CheckBox.ValueChangedFcn = createCallbackFcn(app, @T1corg_CheckBoxValueChanged, true);
             app.T1corg_CheckBox.Text = 'T1分割';
-            app.T1corg_CheckBox.Position = [143 20 60 22];
+            app.T1corg_CheckBox.Position = [138 20 60 22];
 
             % Create mask_CheckBox
             app.mask_CheckBox = uicheckbox(app.UIFigure);
             app.mask_CheckBox.ValueChangedFcn = createCallbackFcn(app, @mask_CheckBoxValueChanged, true);
             app.mask_CheckBox.Text = '提取mask';
-            app.mask_CheckBox.Position = [40 20 75 22];
+            app.mask_CheckBox.Position = [47 20 75 22];
 
             % Create start_Button
             app.start_Button = uibutton(app.UIFigure, 'push');
@@ -285,6 +295,12 @@ classdef prepro < matlab.apps.AppBase
             % Create EditField
             app.EditField = uieditfield(app.UIFigure, 'text');
             app.EditField.Position = [132 231 100 22];
+
+            % Create format_CheckBox
+            app.format_CheckBox = uicheckbox(app.UIFigure);
+            app.format_CheckBox.ValueChangedFcn = createCallbackFcn(app, @format_CheckBoxValueChanged, true);
+            app.format_CheckBox.Text = 'nii_to_mif';
+            app.format_CheckBox.Position = [303 151 73 22];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
