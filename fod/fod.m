@@ -59,19 +59,149 @@ classdef fod < matlab.apps.AppBase
     % Callbacks that handle component events
     methods (Access = private)
 
+        % 控件开始状态
+        function startupFcn(app)
+            
+            % 根据复选框的初始状态设置按钮组的 Enable 状态
+            app.resp_ButtonGroup.Enable = 'off';
+            app.maskedit_EditField.Enable = "off";
+            app.wm_fa_EditField.Enable = "off";
+            app.wmvoxel_EditField.Enable = 'off';
+            app.gmvoxel_EditField.Enable = 'off';
+            app.csfvoxel_EditField.Enable = 'off';
+            app.maxFA_EditField.Enable = 'off';
+            app.voxel_EditField.Enable = 'off';
+            app.wmvoxel_ButtonGroup.Enable = 'off';
+            app.FArange_EditField.Enable = 'off';
+            app.fsr_EditField.Enable = 'off';
+            app.intrate_change_EditField.Enable = 'off';
+            app.intrate_num_EditField.Enable = 'off';
+            app.fiber_num_EditField.Enable = 'off';
+            app.next_fiber_num_EditField.Enable = 'off';
+            app.fod_ButtonGroup.Enable = "off";
+
+        end
+
         % Button pushed function: work_Button
         function work_ButtonPushed(app, event)
-            
+            path = uigetdir('选择工作路径');
+            figure(app.UIFigure)
+            if isempty(path) % 如果用户取消选择
+                figure(app.UIFigure)
+                return;
+            end
+            app.work_EditField.Value = path;
         end
 
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
+            % 获取工作路径和文件夹名称
+            workPath = app.work_EditField.Value; % 获取工作路径
+            folderName = app.start_EditField.Value;    % 获取文件夹名称（起始文件夹）
             
+            % 拼接完整路径
+            fullPath = fullfile(workPath, folderName);
+            
+            % 检查路径是否存在
+            if ~isfolder(fullPath)
+                uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                return;
+            end
+            
+            % 获取所有以 'sub' 开头的文件夹
+            subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'sub' 开头的文件夹
+            subFolderNames = {subFolders.name};          % 提取文件夹名称
+        
+            % 开始计时
+            startTime = tic;
+            
+            % 遍历每个子文件夹
+            for i = 1:length(subFolderNames)
+                subFolder = subFolderNames{i};
+                subFolderPath = fullfile(fullPath, subFolder); % 获取子文件夹的完整路径
+                
+                % 初始化当前处理路径
+                currentPath = subFolderPath;
+                startname = folderName;
+
+                % 检查是否需要进行响应函数估计处理
+                if app.resp_CheckBox.Value
+                    if strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'dhollander') 
+                        maskedit = app.maskedit_EditField.Value;
+                        wm_fa = app.wm_fa_EditField.Value;
+                        wmvoxel = app.wmvoxel_EditField.Value;
+                        gmvoxel = app.gmvoxel_EditField.Value;
+                        csfvoxel = app.csfvoxel_EditField.Value;
+
+                        currentPath = dhollander(workPath, subFolder, currentPath,maskedit,wm_fa,wmvoxel,gmvoxel,csfvoxel); % 调用dhollander
+
+                    elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'fa')
+                        fa(); % 调用fa
+
+                    elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'msmt_5tt')
+                        if strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'tournier')
+                            msmt_5tt_tournier(); % 调用msmt_5tt_tournier
+
+                        elseif strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'tax')
+                            msmt_5tt_tax(); % 调用msmt_5tt_tax
+
+                        elseif strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'fa')
+                            msmt_5tt_tax(); % 调用msmt_5tt_fa
+
+                        end
+                    elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'tax')
+                        tax(); % 调用tax
+
+                    elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'tournier')
+                        tournier(); % 调用tournier
+
+                    end
+                end
+                
+                % 检查是否需要进行纤维方向计算
+                if app.fod_CheckBox.Value
+                    if strcmp(app.fod_ButtonGroup.SelectedObject.Text, '单组织')
+                        smt();
+                    else 
+                        strcmp(app.fod_ButtonGroup.SelectedObject.Text, '多组织')
+
+                        currentPath = msmt(currentPath);
+                    end
+                end
+
+                % 检测是否需要标准化
+                if app.norm_CheckBox.Value
+                    currentPath = normal(workPath, currentPath, subFolder);
+                end
+
+                % 检测是否需要配准
+                if app.f2m_CheckBox.Value
+                    fodtoMNI(workPath,subFolder,currentPath);
+                end
+
+            end
+            
+            % 结束计时
+            elapsedTime = toc(startTime); % 获取处理总时间（秒）
+            
+            % 将处理时间转换为小时、分钟、秒
+            hours = floor(elapsedTime / 3600);
+            minutes = floor((elapsedTime - hours * 3600) / 60);
+            seconds = mod(elapsedTime, 60);
+            
+            % 显示处理完成提示和处理时间
+            uialert(app.UIFigure, ['处理完成' newline '共耗时：', num2str(hours), '小时 ', ...
+                num2str(minutes), '分钟 ', num2str(seconds), '秒'], '完成提示');
         end
 
         % Value changed function: fod_CheckBox
         function fod_CheckBoxValueChanged(app, event)
             value = app.fod_CheckBox.Value;
+            if value
+                app.fod_ButtonGroup.Enable = 'on';
+            else
+                app.fod_ButtonGroup.Enable = 'off';
+            end
             
         end
 
@@ -89,18 +219,150 @@ classdef fod < matlab.apps.AppBase
 
         % Button pushed function: find_Button
         function find_ButtonPushed(app, event)
-            
+            % 获取工作路径和文件夹名称
+            workPath = app.work_EditField.Value; % 获取工作路径
+            folderName = app.start_EditField.Value;    % 获取文件夹名称
+        
+            % 拼接完整路径
+            fullPath = fullfile(workPath, folderName);
+        
+            % 检查路径是否存在
+            if ~isfolder(fullPath)
+                uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                return;
+            end
+        
+            % 获取所有以 'sub' 开头的文件夹
+            subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'Sub' 开头的文件夹
+            subFolderNames = {subFolders.name};          % 提取文件夹名称
+        
+            % 将文件夹名称添加到 sub_TextArea
+            app.sub_TextArea.Value = strjoin(subFolderNames, newline); % 将文件夹名称用换行符连接后显示
         end
 
         % Value changed function: resp_CheckBox
         function resp_CheckBoxValueChanged(app, event)
             value = app.resp_CheckBox.Value;
+            if value
+                app.resp_ButtonGroup.Enable = 'on';
+                app.maskedit_EditField.Enable = "on";
+                app.wm_fa_EditField.Enable = "on";
+                app.wmvoxel_EditField.Enable = 'on';
+                app.gmvoxel_EditField.Enable = 'on';
+                app.csfvoxel_EditField.Enable = 'on';
+                app.maxFA_EditField.Enable = 'on';
+                app.voxel_EditField.Enable = 'on';
+                app.wmvoxel_ButtonGroup.Enable = 'on';
+                app.FArange_EditField.Enable = 'on';
+                app.fsr_EditField.Enable = 'on';
+                app.intrate_change_EditField.Enable = 'on';
+                app.intrate_num_EditField.Enable = 'on';
+                app.fiber_num_EditField.Enable = 'on';
+                app.next_fiber_num_EditField.Enable = 'on';
+                
+            else
+                app.resp_ButtonGroup.Enable = 'off';
+                app.maskedit_EditField.Enable = "off";
+                app.wm_fa_EditField.Enable = "off";
+                app.wmvoxel_EditField.Enable = 'off';
+                app.gmvoxel_EditField.Enable = 'off';
+                app.csfvoxel_EditField.Enable = 'off';
+                app.maxFA_EditField.Enable = 'off';
+                app.voxel_EditField.Enable = 'off';
+                app.wmvoxel_ButtonGroup.Enable = 'off';
+                app.FArange_EditField.Enable = 'off';
+                app.fsr_EditField.Enable = 'off';
+                app.intrate_change_EditField.Enable = 'off';
+                app.intrate_num_EditField.Enable = 'off';
+                app.fiber_num_EditField.Enable = 'off';
+                app.next_fiber_num_EditField.Enable = 'off';
+            end
             
         end
 
         % Selection changed function: resp_ButtonGroup
         function resp_ButtonGroupSelectionChanged(app, event)
             selectedButton = app.resp_ButtonGroup.SelectedObject;
+            if strcmp(selectedButton.Text, 'dhollander')
+                app.maskedit_EditField.Enable = 'on';
+                app.wm_fa_EditField.Enable = "on";
+                app.wmvoxel_EditField.Enable = 'on';
+                app.gmvoxel_EditField.Enable = 'on';
+                app.csfvoxel_EditField.Enable = 'on';
+                app.maxFA_EditField.Enable = 'off';
+                app.voxel_EditField.Enable = 'off';
+                app.wmvoxel_ButtonGroup.Enable = 'off';
+                app.FArange_EditField.Enable = 'off';
+                app.fsr_EditField.Enable = 'off';
+                app.intrate_change_EditField.Enable = 'off';
+                app.intrate_num_EditField.Enable = 'off';
+                app.fiber_num_EditField.Enable = 'off';
+                app.next_fiber_num_EditField.Enable = 'off';
+                
+            elseif strcmp(selectedButton.Text, 'fa')
+                app.maskedit_EditField.Enable = 'on';
+                app.wm_fa_EditField.Enable = "off";
+                app.wmvoxel_EditField.Enable = 'off';
+                app.gmvoxel_EditField.Enable = 'off';
+                app.csfvoxel_EditField.Enable = 'off';
+                app.maxFA_EditField.Enable = 'on';
+                app.voxel_EditField.Enable = 'off';
+                app.wmvoxel_ButtonGroup.Enable = 'off';
+                app.FArange_EditField.Enable = 'off';
+                app.fsr_EditField.Enable = 'off';
+                app.intrate_change_EditField.Enable = 'off';
+                app.intrate_num_EditField.Enable = 'off';
+                app.fiber_num_EditField.Enable = 'off';
+                app.next_fiber_num_EditField.Enable = 'off';
+
+            elseif strcmp(selectedButton.Text, 'msmt_5tt')
+                app.maskedit_EditField.Enable = 'off';
+                app.wm_fa_EditField.Enable = "on";
+                app.wmvoxel_EditField.Enable = 'off';
+                app.gmvoxel_EditField.Enable = 'off';
+                app.csfvoxel_EditField.Enable = 'off';
+                app.maxFA_EditField.Enable = 'on';
+                app.voxel_EditField.Enable = 'on';
+                app.wmvoxel_ButtonGroup.Enable = 'on';
+                app.FArange_EditField.Enable = 'on';
+                app.fsr_EditField.Enable = 'off';
+                app.intrate_change_EditField.Enable = 'off';
+                app.intrate_num_EditField.Enable = 'off';
+                app.fiber_num_EditField.Enable = 'off';
+                app.next_fiber_num_EditField.Enable = 'off';
+            
+            elseif strcmp(selectedButton.Text, 'tax')
+                app.maskedit_EditField.Enable = 'off';
+                app.wm_fa_EditField.Enable = "off";
+                app.wmvoxel_EditField.Enable = 'off';
+                app.gmvoxel_EditField.Enable = 'off';
+                app.csfvoxel_EditField.Enable = 'off';
+                app.maxFA_EditField.Enable = 'off';
+                app.voxel_EditField.Enable = 'off';
+                app.wmvoxel_ButtonGroup.Enable = 'off';
+                app.FArange_EditField.Enable = 'off';
+                app.fsr_EditField.Enable = 'on';
+                app.intrate_change_EditField.Enable = 'on';
+                app.intrate_num_EditField.Enable = 'on';
+                app.fiber_num_EditField.Enable = 'off';
+                app.next_fiber_num_EditField.Enable = 'off';
+
+            elseif strcmp(selectedButton.Text, 'tournier')
+                app.maskedit_EditField.Enable = 'off';
+                app.wm_fa_EditField.Enable = "off";
+                app.wmvoxel_EditField.Enable = 'off';
+                app.gmvoxel_EditField.Enable = 'off';
+                app.csfvoxel_EditField.Enable = 'off';
+                app.maxFA_EditField.Enable = 'off';
+                app.voxel_EditField.Enable = 'off';
+                app.wmvoxel_ButtonGroup.Enable = 'off';
+                app.FArange_EditField.Enable = 'off';
+                app.fsr_EditField.Enable = 'off';
+                app.intrate_change_EditField.Enable = 'off';
+                app.intrate_num_EditField.Enable = 'on';
+                app.fiber_num_EditField.Enable = 'on';
+                app.next_fiber_num_EditField.Enable = 'on';
+            end
             
         end
 
@@ -205,6 +467,12 @@ classdef fod < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Position = [100 100 573 372];
             app.UIFigure.Name = '反卷积函数估计';
+
+            screenSize = get(0, 'ScreenSize');
+            figureWidth = app.UIFigure.Position(3);
+            figureHeight = app.UIFigure.Position(4);
+            app.UIFigure.Position(1) = (screenSize(3) - figureWidth) / 2;
+            app.UIFigure.Position(2) = (screenSize(4) - figureHeight) / 2;
 
             % Create sub_TextArea
             app.sub_TextArea = uitextarea(app.UIFigure);
@@ -514,9 +782,14 @@ classdef fod < matlab.apps.AppBase
 
             % Create UIFigure and components
             createComponents(app)
+            
+            % 控件初始化
+            runStartupFcn(app, @startupFcn)
 
             % Register the app with App Designer
             registerApp(app, app.UIFigure)
+
+            
 
             if nargout == 0
                 clear app
