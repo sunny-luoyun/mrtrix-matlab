@@ -28,12 +28,14 @@ classdef fun < matlab.apps.AppBase
 
         % Button pushed function: fod_Button
         function fod_ButtonPushed(app, event)
-            
+            addpath('fod')
+            run('fod.m')
         end
 
         % Button pushed function: fiber_Button
         function fiber_ButtonPushed(app, event)
-            
+            addpath('fiber')
+            run('fiber.m')
         end
 
         % Button pushed function: net_Button

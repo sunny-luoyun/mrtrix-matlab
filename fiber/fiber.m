@@ -1,0 +1,517 @@
+classdef fiber < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure             matlab.ui.Figure
+        useweight_CheckBox   matlab.ui.control.CheckBox
+        smooth_EditField     matlab.ui.control.NumericEditField
+        Label_12             matlab.ui.control.Label
+        duibi_ButtonGroup    matlab.ui.container.ButtonGroup
+        curvatureButton      matlab.ui.control.RadioButton
+        fod_ampButton        matlab.ui.control.RadioButton
+        invlengthButton      matlab.ui.control.RadioButton
+        lengthButton         matlab.ui.control.RadioButton
+        TDIButton            matlab.ui.control.RadioButton
+        tck2niiCheckBox      matlab.ui.control.CheckBox
+        decr_nunEditField    matlab.ui.control.EditField
+        Label_11             matlab.ui.control.Label
+        fibernumEditField    matlab.ui.control.EditField
+        Label_10             matlab.ui.control.Label
+        trytimeEditField     matlab.ui.control.NumericEditField
+        Label_9              matlab.ui.control.Label
+        FODEditField         matlab.ui.control.NumericEditField
+        FODEditFieldLabel    matlab.ui.control.Label
+        maxlength_EditField  matlab.ui.control.NumericEditField
+        Label_8              matlab.ui.control.Label
+        mixlength_EditField  matlab.ui.control.NumericEditField
+        Label_7              matlab.ui.control.Label
+        angle_EditField      matlab.ui.control.NumericEditField
+        Label_6              matlab.ui.control.Label
+        goin_EditField       matlab.ui.control.NumericEditField
+        Label_5              matlab.ui.control.Label
+        maskpath_EditField   matlab.ui.control.EditField
+        Label_4              matlab.ui.control.Label
+        addmask_Button       matlab.ui.control.Button
+        roi_EditField        matlab.ui.control.EditField
+        Label_3              matlab.ui.control.Label
+        mode_ButtonGroup     matlab.ui.container.ButtonGroup
+        maskButton           matlab.ui.control.RadioButton
+        roiButton            matlab.ui.control.RadioButton
+        brainButton          matlab.ui.control.RadioButton
+        track_ButtonGroup    matlab.ui.container.ButtonGroup
+        FACTButton           matlab.ui.control.RadioButton
+        Tensor_ProbButton    matlab.ui.control.RadioButton
+        Tensor_DetButton     matlab.ui.control.RadioButton
+        SD_StreamButton      matlab.ui.control.RadioButton
+        iFOD2Button          matlab.ui.control.RadioButton
+        start_EditField      matlab.ui.control.EditField
+        Label_2              matlab.ui.control.Label
+        find_Button          matlab.ui.control.Button
+        start_Button         matlab.ui.control.Button
+        tckweight_CheckBox   matlab.ui.control.CheckBox
+        sift_CheckBox        matlab.ui.control.CheckBox
+        work_Button          matlab.ui.control.Button
+        work_EditField       matlab.ui.control.EditField
+        Label                matlab.ui.control.Label
+        sub_TextArea         matlab.ui.control.TextArea
+    end
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Button pushed function: work_Button
+        function work_ButtonPushed(app, event)
+            
+        end
+
+        % Button pushed function: start_Button
+        function start_ButtonPushed(app, event)
+            
+        end
+
+        % Value changed function: sift_CheckBox
+        function sift_CheckBoxValueChanged(app, event)
+            value = app.sift_CheckBox.Value;
+            
+        end
+
+        % Value changed function: tckweight_CheckBox
+        function tckweight_CheckBoxValueChanged(app, event)
+            value = app.tckweight_CheckBox.Value;
+            
+        end
+
+        % Button pushed function: find_Button
+        function find_ButtonPushed(app, event)
+            
+        end
+
+        % Selection changed function: track_ButtonGroup
+        function track_ButtonGroupSelectionChanged(app, event)
+            selectedButton = app.track_ButtonGroup.SelectedObject;
+            
+        end
+
+        % Selection changed function: mode_ButtonGroup
+        function mode_ButtonGroupSelectionChanged(app, event)
+            selectedButton = app.mode_ButtonGroup.SelectedObject;
+            
+        end
+
+        % Value changed function: roi_EditField
+        function roi_EditFieldValueChanged(app, event)
+            value = app.roi_EditField.Value;
+            
+        end
+
+        % Value changed function: maskpath_EditField
+        function maskpath_EditFieldValueChanged(app, event)
+            value = app.maskpath_EditField.Value;
+            
+        end
+
+        % Button pushed function: addmask_Button
+        function addmask_ButtonPushed(app, event)
+            
+        end
+
+        % Value changed function: goin_EditField
+        function goin_EditFieldValueChanged(app, event)
+            value = app.goin_EditField.Value;
+            
+        end
+
+        % Value changed function: angle_EditField
+        function angle_EditFieldValueChanged(app, event)
+            value = app.angle_EditField.Value;
+            
+        end
+
+        % Value changed function: mixlength_EditField
+        function mixlength_EditFieldValueChanged(app, event)
+            value = app.mixlength_EditField.Value;
+            
+        end
+
+        % Value changed function: maxlength_EditField
+        function maxlength_EditFieldValueChanged(app, event)
+            value = app.maxlength_EditField.Value;
+            
+        end
+
+        % Value changed function: FODEditField
+        function FODEditFieldValueChanged(app, event)
+            value = app.FODEditField.Value;
+            
+        end
+
+        % Value changed function: trytimeEditField
+        function trytimeEditFieldValueChanged(app, event)
+            value = app.trytimeEditField.Value;
+            
+        end
+
+        % Value changed function: fibernumEditField
+        function fibernumEditFieldValueChanged(app, event)
+            value = app.fibernumEditField.Value;
+            
+        end
+
+        % Value changed function: decr_nunEditField
+        function decr_nunEditFieldValueChanged(app, event)
+            value = app.decr_nunEditField.Value;
+            
+        end
+
+        % Value changed function: tck2niiCheckBox
+        function tck2niiCheckBoxValueChanged(app, event)
+            value = app.tck2niiCheckBox.Value;
+            
+        end
+
+        % Value changed function: smooth_EditField
+        function smooth_EditFieldValueChanged(app, event)
+            value = app.smooth_EditField.Value;
+            
+        end
+
+        % Value changed function: useweight_CheckBox
+        function useweight_CheckBoxValueChanged(app, event)
+            value = app.useweight_CheckBox.Value;
+            
+        end
+
+        % Selection changed function: duibi_ButtonGroup
+        function duibi_ButtonGroupSelectionChanged(app, event)
+            selectedButton = app.duibi_ButtonGroup.SelectedObject;
+            
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 561 486];
+            app.UIFigure.Name = '纤维重建';
+
+            % Create sub_TextArea
+            app.sub_TextArea = uitextarea(app.UIFigure);
+            app.sub_TextArea.Editable = 'off';
+            app.sub_TextArea.Position = [133 326 256 65];
+
+            % Create Label
+            app.Label = uilabel(app.UIFigure);
+            app.Label.HorizontalAlignment = 'right';
+            app.Label.Position = [102 448 53 22];
+            app.Label.Text = '工作路径';
+
+            % Create work_EditField
+            app.work_EditField = uieditfield(app.UIFigure, 'text');
+            app.work_EditField.Editable = 'off';
+            app.work_EditField.Position = [170 448 245 22];
+
+            % Create work_Button
+            app.work_Button = uibutton(app.UIFigure, 'push');
+            app.work_Button.ButtonPushedFcn = createCallbackFcn(app, @work_ButtonPushed, true);
+            app.work_Button.Position = [425 448 35 23];
+            app.work_Button.Text = '...';
+
+            % Create sift_CheckBox
+            app.sift_CheckBox = uicheckbox(app.UIFigure);
+            app.sift_CheckBox.ValueChangedFcn = createCallbackFcn(app, @sift_CheckBoxValueChanged, true);
+            app.sift_CheckBox.Text = '缩减纤维数量SIFT';
+            app.sift_CheckBox.Position = [177 110 119 22];
+
+            % Create tckweight_CheckBox
+            app.tckweight_CheckBox = uicheckbox(app.UIFigure);
+            app.tckweight_CheckBox.ValueChangedFcn = createCallbackFcn(app, @tckweight_CheckBoxValueChanged, true);
+            app.tckweight_CheckBox.Text = '生成纤维权重文件';
+            app.tckweight_CheckBox.Position = [49 110 118 22];
+
+            % Create start_Button
+            app.start_Button = uibutton(app.UIFigure, 'push');
+            app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed, true);
+            app.start_Button.Position = [440 21 97 23];
+            app.start_Button.Text = '开始处理';
+
+            % Create find_Button
+            app.find_Button = uibutton(app.UIFigure, 'push');
+            app.find_Button.ButtonPushedFcn = createCallbackFcn(app, @find_ButtonPushed, true);
+            app.find_Button.Position = [341 409 75 23];
+            app.find_Button.Text = '检索';
+
+            % Create Label_2
+            app.Label_2 = uilabel(app.UIFigure);
+            app.Label_2.HorizontalAlignment = 'right';
+            app.Label_2.Position = [132 409 77 22];
+            app.Label_2.Text = '被试文件夹名';
+
+            % Create start_EditField
+            app.start_EditField = uieditfield(app.UIFigure, 'text');
+            app.start_EditField.Position = [224 409 100 22];
+
+            % Create track_ButtonGroup
+            app.track_ButtonGroup = uibuttongroup(app.UIFigure);
+            app.track_ButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @track_ButtonGroupSelectionChanged, true);
+            app.track_ButtonGroup.Title = '纤维追踪算法';
+            app.track_ButtonGroup.Position = [42 178 123 136];
+
+            % Create iFOD2Button
+            app.iFOD2Button = uiradiobutton(app.track_ButtonGroup);
+            app.iFOD2Button.Text = 'iFOD2';
+            app.iFOD2Button.Position = [11 90 56 22];
+            app.iFOD2Button.Value = true;
+
+            % Create SD_StreamButton
+            app.SD_StreamButton = uiradiobutton(app.track_ButtonGroup);
+            app.SD_StreamButton.Text = 'SD_Stream';
+            app.SD_StreamButton.Position = [11 69 83 22];
+
+            % Create Tensor_DetButton
+            app.Tensor_DetButton = uiradiobutton(app.track_ButtonGroup);
+            app.Tensor_DetButton.Text = 'Tensor_Det';
+            app.Tensor_DetButton.Position = [11 46 82 22];
+
+            % Create Tensor_ProbButton
+            app.Tensor_ProbButton = uiradiobutton(app.track_ButtonGroup);
+            app.Tensor_ProbButton.Text = 'Tensor_Prob';
+            app.Tensor_ProbButton.Position = [11 25 89 22];
+
+            % Create FACTButton
+            app.FACTButton = uiradiobutton(app.track_ButtonGroup);
+            app.FACTButton.Text = 'FACT';
+            app.FACTButton.Position = [11 4 52 22];
+
+            % Create mode_ButtonGroup
+            app.mode_ButtonGroup = uibuttongroup(app.UIFigure);
+            app.mode_ButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @mode_ButtonGroupSelectionChanged, true);
+            app.mode_ButtonGroup.Title = '追踪模式';
+            app.mode_ButtonGroup.Position = [175 224 123 90];
+
+            % Create brainButton
+            app.brainButton = uiradiobutton(app.mode_ButtonGroup);
+            app.brainButton.Text = '全脑追踪';
+            app.brainButton.Position = [11 44 70 22];
+            app.brainButton.Value = true;
+
+            % Create roiButton
+            app.roiButton = uiradiobutton(app.mode_ButtonGroup);
+            app.roiButton.Text = '基于种子点';
+            app.roiButton.Position = [11 23 82 22];
+
+            % Create maskButton
+            app.maskButton = uiradiobutton(app.mode_ButtonGroup);
+            app.maskButton.Text = '基于mask';
+            app.maskButton.Position = [11 1 75 22];
+
+            % Create Label_3
+            app.Label_3 = uilabel(app.UIFigure);
+            app.Label_3.HorizontalAlignment = 'right';
+            app.Label_3.Position = [312 289 92 22];
+            app.Label_3.Text = '种子点坐标,半径';
+
+            % Create roi_EditField
+            app.roi_EditField = uieditfield(app.UIFigure, 'text');
+            app.roi_EditField.ValueChangedFcn = createCallbackFcn(app, @roi_EditFieldValueChanged, true);
+            app.roi_EditField.Position = [419 289 52 22];
+            app.roi_EditField.Value = '0,0,0,0';
+
+            % Create addmask_Button
+            app.addmask_Button = uibutton(app.UIFigure, 'push');
+            app.addmask_Button.ButtonPushedFcn = createCallbackFcn(app, @addmask_ButtonPushed, true);
+            app.addmask_Button.Position = [503 258 36 23];
+            app.addmask_Button.Text = '...';
+
+            % Create Label_4
+            app.Label_4 = uilabel(app.UIFigure);
+            app.Label_4.HorizontalAlignment = 'right';
+            app.Label_4.Position = [314 258 58 22];
+            app.Label_4.Text = 'mask文件';
+
+            % Create maskpath_EditField
+            app.maskpath_EditField = uieditfield(app.UIFigure, 'text');
+            app.maskpath_EditField.ValueChangedFcn = createCallbackFcn(app, @maskpath_EditFieldValueChanged, true);
+            app.maskpath_EditField.Editable = 'off';
+            app.maskpath_EditField.Position = [377 258 112 22];
+
+            % Create Label_5
+            app.Label_5 = uilabel(app.UIFigure);
+            app.Label_5.HorizontalAlignment = 'right';
+            app.Label_5.Position = [178 182 53 22];
+            app.Label_5.Text = '步进长度';
+
+            % Create goin_EditField
+            app.goin_EditField = uieditfield(app.UIFigure, 'numeric');
+            app.goin_EditField.ValueChangedFcn = createCallbackFcn(app, @goin_EditFieldValueChanged, true);
+            app.goin_EditField.Position = [237 182 33 22];
+
+            % Create Label_6
+            app.Label_6 = uilabel(app.UIFigure);
+            app.Label_6.HorizontalAlignment = 'right';
+            app.Label_6.Position = [277 182 53 22];
+            app.Label_6.Text = '最大角度';
+
+            % Create angle_EditField
+            app.angle_EditField = uieditfield(app.UIFigure, 'numeric');
+            app.angle_EditField.ValueChangedFcn = createCallbackFcn(app, @angle_EditFieldValueChanged, true);
+            app.angle_EditField.Position = [338 182 24 22];
+
+            % Create Label_7
+            app.Label_7 = uilabel(app.UIFigure);
+            app.Label_7.HorizontalAlignment = 'right';
+            app.Label_7.Position = [369 182 53 22];
+            app.Label_7.Text = '最小长度';
+
+            % Create mixlength_EditField
+            app.mixlength_EditField = uieditfield(app.UIFigure, 'numeric');
+            app.mixlength_EditField.ValueChangedFcn = createCallbackFcn(app, @mixlength_EditFieldValueChanged, true);
+            app.mixlength_EditField.Position = [430 182 24 22];
+
+            % Create Label_8
+            app.Label_8 = uilabel(app.UIFigure);
+            app.Label_8.HorizontalAlignment = 'right';
+            app.Label_8.Position = [461 182 53 22];
+            app.Label_8.Text = '最大长度';
+
+            % Create maxlength_EditField
+            app.maxlength_EditField = uieditfield(app.UIFigure, 'numeric');
+            app.maxlength_EditField.ValueChangedFcn = createCallbackFcn(app, @maxlength_EditFieldValueChanged, true);
+            app.maxlength_EditField.Position = [522 182 24 22];
+
+            % Create FODEditFieldLabel
+            app.FODEditFieldLabel = uilabel(app.UIFigure);
+            app.FODEditFieldLabel.HorizontalAlignment = 'right';
+            app.FODEditFieldLabel.Position = [45 147 77 22];
+            app.FODEditFieldLabel.Text = '终止FOD振幅';
+
+            % Create FODEditField
+            app.FODEditField = uieditfield(app.UIFigure, 'numeric');
+            app.FODEditField.ValueChangedFcn = createCallbackFcn(app, @FODEditFieldValueChanged, true);
+            app.FODEditField.Position = [127 147 28 22];
+
+            % Create Label_9
+            app.Label_9 = uilabel(app.UIFigure);
+            app.Label_9.HorizontalAlignment = 'right';
+            app.Label_9.Position = [165 147 89 22];
+            app.Label_9.Text = '每个点最大试次';
+
+            % Create trytimeEditField
+            app.trytimeEditField = uieditfield(app.UIFigure, 'numeric');
+            app.trytimeEditField.ValueChangedFcn = createCallbackFcn(app, @trytimeEditFieldValueChanged, true);
+            app.trytimeEditField.Position = [260 147 44 22];
+            app.trytimeEditField.Value = 1000;
+
+            % Create Label_10
+            app.Label_10 = uilabel(app.UIFigure);
+            app.Label_10.HorizontalAlignment = 'right';
+            app.Label_10.Position = [305 147 65 22];
+            app.Label_10.Text = '生成纤维数';
+
+            % Create fibernumEditField
+            app.fibernumEditField = uieditfield(app.UIFigure, 'text');
+            app.fibernumEditField.ValueChangedFcn = createCallbackFcn(app, @fibernumEditFieldValueChanged, true);
+            app.fibernumEditField.Position = [385 147 37 22];
+            app.fibernumEditField.Value = '10m';
+
+            % Create Label_11
+            app.Label_11 = uilabel(app.UIFigure);
+            app.Label_11.HorizontalAlignment = 'right';
+            app.Label_11.Position = [299 110 89 22];
+            app.Label_11.Text = '缩减后纤维数量';
+
+            % Create decr_nunEditField
+            app.decr_nunEditField = uieditfield(app.UIFigure, 'text');
+            app.decr_nunEditField.ValueChangedFcn = createCallbackFcn(app, @decr_nunEditFieldValueChanged, true);
+            app.decr_nunEditField.Position = [403 110 29 22];
+            app.decr_nunEditField.Value = '1m';
+
+            % Create tck2niiCheckBox
+            app.tck2niiCheckBox = uicheckbox(app.UIFigure);
+            app.tck2niiCheckBox.ValueChangedFcn = createCallbackFcn(app, @tck2niiCheckBoxValueChanged, true);
+            app.tck2niiCheckBox.Text = '将纤维文件转换为nii';
+            app.tck2niiCheckBox.Position = [49 76 130 22];
+
+            % Create duibi_ButtonGroup
+            app.duibi_ButtonGroup = uibuttongroup(app.UIFigure);
+            app.duibi_ButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @duibi_ButtonGroupSelectionChanged, true);
+            app.duibi_ButtonGroup.Title = '对比度映射方法';
+            app.duibi_ButtonGroup.Position = [43 14 372 53];
+
+            % Create TDIButton
+            app.TDIButton = uiradiobutton(app.duibi_ButtonGroup);
+            app.TDIButton.Text = 'TDI';
+            app.TDIButton.Position = [11 7 40 22];
+            app.TDIButton.Value = true;
+
+            % Create lengthButton
+            app.lengthButton = uiradiobutton(app.duibi_ButtonGroup);
+            app.lengthButton.Text = 'length';
+            app.lengthButton.Position = [58 7 55 22];
+
+            % Create invlengthButton
+            app.invlengthButton = uiradiobutton(app.duibi_ButtonGroup);
+            app.invlengthButton.Text = 'invlength';
+            app.invlengthButton.Position = [122 7 70 22];
+
+            % Create fod_ampButton
+            app.fod_ampButton = uiradiobutton(app.duibi_ButtonGroup);
+            app.fod_ampButton.Text = 'fod_amp';
+            app.fod_ampButton.Position = [197 7 69 22];
+
+            % Create curvatureButton
+            app.curvatureButton = uiradiobutton(app.duibi_ButtonGroup);
+            app.curvatureButton.Text = 'curvature';
+            app.curvatureButton.Position = [280 7 72 22];
+
+            % Create Label_12
+            app.Label_12 = uilabel(app.UIFigure);
+            app.Label_12.HorizontalAlignment = 'right';
+            app.Label_12.Position = [187 76 77 22];
+            app.Label_12.Text = '进行高斯平滑';
+
+            % Create smooth_EditField
+            app.smooth_EditField = uieditfield(app.UIFigure, 'numeric');
+            app.smooth_EditField.ValueChangedFcn = createCallbackFcn(app, @smooth_EditFieldValueChanged, true);
+            app.smooth_EditField.Position = [270 76 21 22];
+
+            % Create useweight_CheckBox
+            app.useweight_CheckBox = uicheckbox(app.UIFigure);
+            app.useweight_CheckBox.ValueChangedFcn = createCallbackFcn(app, @useweight_CheckBoxValueChanged, true);
+            app.useweight_CheckBox.Text = '使用纤维权重文件';
+            app.useweight_CheckBox.Position = [306 76 118 22];
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = fiber
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
