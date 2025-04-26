@@ -21,6 +21,8 @@ classdef fun < matlab.apps.AppBase
         end
         % Button pushed function: dti_Button
         function dti_ButtonPushed(app, event)
+            addpath('dti')
+            run('dti.m')
             
         end
 
