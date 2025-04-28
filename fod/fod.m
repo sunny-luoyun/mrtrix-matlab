@@ -127,6 +127,7 @@ classdef fod < matlab.apps.AppBase
                 % 检查是否需要进行响应函数估计处理
                 if app.resp_CheckBox.Value
                     if strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'dhollander') 
+                        
                         maskedit = app.maskedit_EditField.Value;
                         wm_fa = app.wm_fa_EditField.Value;
                         wmvoxel = app.wmvoxel_EditField.Value;
@@ -136,14 +137,23 @@ classdef fod < matlab.apps.AppBase
                         currentPath = dhollander(workPath, subFolder, currentPath,maskedit,wm_fa,wmvoxel,gmvoxel,csfvoxel); % 调用dhollander
 
                     elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'fa')
-                        fa(); % 调用fa
+                        maskedit = app.maskedit_EditField.Value;
+                        maxfa = app.maxFA_EditField.Value;
+                        
+                        currentPath = fa(workPath, subFolder, currentPath,maskedit,maxfa); % 调用fa
 
                     elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'msmt_5tt')
                         if strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'tournier')
-                            msmt_5tt_tournier(); % 调用msmt_5tt_tournier
+                            wm_fa = app.wm_fa_EditField.Value;
+                            voxel = app.voxel_EditField.Value;
+
+                            currentPath = msmt_5tt_tournier(workPath, subFolder, currentPath,wm_fa, voxel); % 调用msmt_5tt_tournier
 
                         elseif strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'tax')
-                            msmt_5tt_tax(); % 调用msmt_5tt_tax
+                            wm_fa = app.wm_fa_EditField.Value;
+                            voxel = app.voxel_EditField.Value;
+
+                            currentPath = msmt_5tt_tax(workPath, subFolder, currentPath,wm_fa, voxel); % 调用msmt_5tt_tax
 
                         elseif strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'fa')
                             msmt_5tt_tax(); % 调用msmt_5tt_fa
@@ -250,15 +260,15 @@ classdef fod < matlab.apps.AppBase
                 app.wmvoxel_EditField.Enable = 'on';
                 app.gmvoxel_EditField.Enable = 'on';
                 app.csfvoxel_EditField.Enable = 'on';
-                app.maxFA_EditField.Enable = 'on';
-                app.voxel_EditField.Enable = 'on';
-                app.wmvoxel_ButtonGroup.Enable = 'on';
-                app.FArange_EditField.Enable = 'on';
-                app.fsr_EditField.Enable = 'on';
-                app.intrate_change_EditField.Enable = 'on';
-                app.intrate_num_EditField.Enable = 'on';
-                app.fiber_num_EditField.Enable = 'on';
-                app.next_fiber_num_EditField.Enable = 'on';
+                app.maxFA_EditField.Enable = 'off';
+                app.voxel_EditField.Enable = 'off';
+                app.wmvoxel_ButtonGroup.Enable = 'off';
+                app.FArange_EditField.Enable = 'off';
+                app.fsr_EditField.Enable = 'off';
+                app.intrate_change_EditField.Enable = 'off';
+                app.intrate_num_EditField.Enable = 'off';
+                app.fiber_num_EditField.Enable = 'off';
+                app.next_fiber_num_EditField.Enable = 'off';
                 
             else
                 app.resp_ButtonGroup.Enable = 'off';
@@ -321,10 +331,10 @@ classdef fod < matlab.apps.AppBase
                 app.wmvoxel_EditField.Enable = 'off';
                 app.gmvoxel_EditField.Enable = 'off';
                 app.csfvoxel_EditField.Enable = 'off';
-                app.maxFA_EditField.Enable = 'on';
+                app.maxFA_EditField.Enable = 'off';
                 app.voxel_EditField.Enable = 'on';
                 app.wmvoxel_ButtonGroup.Enable = 'on';
-                app.FArange_EditField.Enable = 'on';
+                app.FArange_EditField.Enable = 'off';
                 app.fsr_EditField.Enable = 'off';
                 app.intrate_change_EditField.Enable = 'off';
                 app.intrate_num_EditField.Enable = 'off';
@@ -411,6 +421,13 @@ classdef fod < matlab.apps.AppBase
         % Selection changed function: wmvoxel_ButtonGroup
         function wmvoxel_ButtonGroupSelectionChanged(app, event)
             selectedButton = app.wmvoxel_ButtonGroup.SelectedObject;
+            if strcmp(selectedButton.Text, 'tournier')
+                app.FArange_EditField.Enable = 'off';
+            elseif strcmp(selectedButton.Text, 'tax')
+                app.FArange_EditField.Enable = 'off';
+            elseif strcmp(selectedButton.Text, 'fa');
+                app.FArange_EditField.Enable = 'on';
+            end
             
         end
 
