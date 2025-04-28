@@ -101,7 +101,7 @@ classdef prepro < matlab.apps.AppBase
 
                 % 检查是否需要进行 dwi_to_MNI 处理
                 if app.dwi_to_MNI_CheckBox.Value
-                    dwitoMNI(subFolder, workPath); % 调用 dwi_to_MNI 处理函数
+                    dwitoMNI(subFolder, workPath,startname); % 调用 dwi_to_MNI 处理函数
                 end
         
                 % 检查是否需要进行 mask 处理

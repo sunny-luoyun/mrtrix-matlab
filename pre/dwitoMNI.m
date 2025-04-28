@@ -1,4 +1,5 @@
-function dwitoMNI(name, work)
+function dwitoMNI(name, work,startname)
+    bi = fullfile(work,startname,name);
     
     % 获取当前脚本的完整路径
     current_script_path = mfilename('fullpath');
@@ -14,6 +15,17 @@ function dwitoMNI(name, work)
     
     dtoM = fullfile(work, 'dwi_coreg', name); 
     mkdir(dtoM); % 创建目录
+
+    b0 = fullfile(work, 'pre_b0',name); 
+    mkdir(b0); 
+
+    dwib0 = sprintf('dwiextract %s/dwi.mif - -bzero | mrmath - mean %s/mean_b0.mif -axis 3 -force', ... 
+        bi, b0);
+    system(dwib0);
+
+    dwib0 = sprintf('mrconvert %s/mean_b0.mif %s/mean_b0.nii.gz -force', ... 
+        b0, b0);
+    system(dwib0);
 
     path = fullfile(work, 'pre_b0', name);
     
