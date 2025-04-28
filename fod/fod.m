@@ -156,14 +156,26 @@ classdef fod < matlab.apps.AppBase
                             currentPath = msmt_5tt_tax(workPath, subFolder, currentPath,wm_fa, voxel); % 调用msmt_5tt_tax
 
                         elseif strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'fa')
-                            msmt_5tt_tax(); % 调用msmt_5tt_fa
+                            wm_fa = app.wm_fa_EditField.Value;
+                            voxel = app.voxel_EditField.Value;
+                            farange = app.FArange_EditField.Value;
+
+                            currentPath = msmt_5tt_fa(workPath, subFolder, currentPath,wm_fa, voxel,farange); % 调用msmt_5tt_fa
 
                         end
                     elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'tax')
-                        tax(); % 调用tax
+                        peak_ratio = app.fsr_EditField.Value;
+                        max_iters = app.intrate_num_EditField.Value;
+                        convergence = app.intrate_change_EditField.Value;
+
+                        currentPath = tax(workPath, subFolder, currentPath,peak_ratio, max_iters,convergence); % 调用tax
 
                     elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'tournier')
-                        tournier(); % 调用tournier
+                        max_iters = app.intrate_num_EditField.Value;
+                        number = app.fiber_num_EditField.Value;
+                        iter_voxel = app.next_fiber_num_EditField.Value;
+                        
+                        currentPath = tournier(workPath, subFolder, currentPath, number,iter_voxel,max_iters); % 调用tournier
 
                     end
                 end
@@ -171,7 +183,7 @@ classdef fod < matlab.apps.AppBase
                 % 检查是否需要进行纤维方向计算
                 if app.fod_CheckBox.Value
                     if strcmp(app.fod_ButtonGroup.SelectedObject.Text, '单组织')
-                        smt();
+                        currentPath = csd(currentPath);
                     else 
                         strcmp(app.fod_ButtonGroup.SelectedObject.Text, '多组织')
 

@@ -13,6 +13,10 @@ function fodtoMNI(workPath,name,currentPath)
 
     warppath = fullfile(workPath,'dwi_coreg',name);
 
+    cmd = sprintf('mrtransform %s/fod_norm.mif -linear %s/dwi_to_MNI_mrtrix.txt -template %s %s/fod_norm_MNI.mif -reorient_fod yes -force', ... 
+        currentPath, warppath, template_path, currentPath);
+    system(cmd);
+
     cmd = sprintf('mrtransform %s/wmfod_norm.mif -linear %s/dwi_to_MNI_mrtrix.txt -template %s %s/wmfod_norm_MNI.mif -reorient_fod yes -force', ... 
         currentPath, warppath, template_path, currentPath);
     system(cmd);
