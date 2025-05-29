@@ -264,7 +264,8 @@ classdef dti < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Position = [100 100 466 404];
             app.UIFigure.Name = '弥散指标计算';
-
+            
+            % 设置窗口居中
             screenSize = get(0, 'ScreenSize');
             figureWidth = app.UIFigure.Position(3);
             figureHeight = app.UIFigure.Position(4);
