@@ -3,9 +3,9 @@ classdef fiber < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure             matlab.ui.Figure
+        gaosmooth_CheckBox   matlab.ui.control.CheckBox
         useweight_CheckBox   matlab.ui.control.CheckBox
         smooth_EditField     matlab.ui.control.NumericEditField
-        Label_12             matlab.ui.control.Label
         duibi_ButtonGroup    matlab.ui.container.ButtonGroup
         curvatureButton      matlab.ui.control.RadioButton
         fod_ampButton        matlab.ui.control.RadioButton
@@ -142,8 +142,9 @@ classdef fiber < matlab.apps.AppBase
                     methodtest = method.Text;
                     smooth = app.smooth_EditField.Value;
                     weight = app.useweight_CheckBox.Value;
-                    currentPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,methodtest,smooth,weight);
-                     
+                    gaosmooth = app.gaosmooth_CheckBox.Value;
+                    currentPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,methodtest,smooth,weight,gaosmooth);
+                    
                 end
             end
             
@@ -345,13 +346,33 @@ classdef fiber < matlab.apps.AppBase
                 app.smooth_EditField.Enable = "on";
                 app.useweight_CheckBox.Enable = "on";
                 app.duibi_ButtonGroup.Enable = "on";
-                app.Label_12.Enable = "on";
+                
             else
                 app.smooth_EditField.Enable = "off";
                 app.useweight_CheckBox.Enable = "off";
                 app.duibi_ButtonGroup.Enable = "off";
-                app.Label_12.Enable = "off";
+                
             end
+        end
+
+        % Value changed function: gaosmooth_CheckBox
+        function gaosmooth_CheckBoxValueChanged(app, event)
+            value = app.gaosmooth_CheckBox.Value;
+            if value
+                app.smooth_EditField.Enable = 'on';
+                app.lengthButton.Enable = 'off';
+                app.invlengthButton.Enable = 'off';
+                app.fod_ampButton.Enable = "off";
+                app.curvatureButton.Enable = "off";
+                app.TDIButton.Value = true;
+            else
+                app.smooth_EditField.Enable = 'off';
+                app.lengthButton.Enable = 'on';
+                app.invlengthButton.Enable = 'on';
+                app.fod_ampButton.Enable = "on";
+                app.curvatureButton.Enable = "on";
+            end
+        
         end
 
         % Value changed function: smooth_EditField
@@ -691,13 +712,6 @@ classdef fiber < matlab.apps.AppBase
             app.curvatureButton.Text = 'curvature';
             app.curvatureButton.Position = [280 7 72 22];
 
-            % Create Label_12
-            app.Label_12 = uilabel(app.UIFigure);
-            app.Label_12.HorizontalAlignment = 'right';
-            app.Label_12.Position = [187 76 77 22];
-            app.Label_12.Text = '进行高斯平滑';
-            app.Label_12.Enable = "off";
-
             % Create smooth_EditField
             app.smooth_EditField = uieditfield(app.UIFigure, 'numeric');
             app.smooth_EditField.ValueChangedFcn = createCallbackFcn(app, @smooth_EditFieldValueChanged, true);
@@ -717,6 +731,12 @@ classdef fiber < matlab.apps.AppBase
             app.fiberbuild_CheckBox.ValueChangedFcn = createCallbackFcn(app, @fiberbuild_CheckBoxValueChanged, true);
             app.fiberbuild_CheckBox.Text = '纤维重建';
             app.fiberbuild_CheckBox.Position = [49 325 118 22];
+
+            % Create gaosmooth_CheckBox
+            app.gaosmooth_CheckBox = uicheckbox(app.UIFigure);
+            app.gaosmooth_CheckBox.ValueChangedFcn = createCallbackFcn(app, @gaosmooth_CheckBoxValueChanged, true);
+            app.gaosmooth_CheckBox.Text = '高斯平滑';
+            app.gaosmooth_CheckBox.Position = [190 76 80 22];
             
 
             % Show the figure after all components are created
