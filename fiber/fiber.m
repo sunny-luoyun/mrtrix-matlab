@@ -346,11 +346,13 @@ classdef fiber < matlab.apps.AppBase
                 app.smooth_EditField.Enable = "on";
                 app.useweight_CheckBox.Enable = "on";
                 app.duibi_ButtonGroup.Enable = "on";
+                app.gaosmooth_CheckBox.Enable = "on";
                 
             else
                 app.smooth_EditField.Enable = "off";
                 app.useweight_CheckBox.Enable = "off";
                 app.duibi_ButtonGroup.Enable = "off";
+                app.gaosmooth_CheckBox.Enable = "off";
                 
             end
         end
@@ -678,6 +680,7 @@ classdef fiber < matlab.apps.AppBase
             app.tck2niiCheckBox.ValueChangedFcn = createCallbackFcn(app, @tck2niiCheckBoxValueChanged, true);
             app.tck2niiCheckBox.Text = '将纤维文件转换为nii';
             app.tck2niiCheckBox.Position = [49 76 130 22];
+            
 
             % Create duibi_ButtonGroup
             app.duibi_ButtonGroup = uibuttongroup(app.UIFigure);
@@ -737,6 +740,7 @@ classdef fiber < matlab.apps.AppBase
             app.gaosmooth_CheckBox.ValueChangedFcn = createCallbackFcn(app, @gaosmooth_CheckBoxValueChanged, true);
             app.gaosmooth_CheckBox.Text = '高斯平滑';
             app.gaosmooth_CheckBox.Position = [190 76 80 22];
+            app.gaosmooth_CheckBox.Enable = "off";
             
 
             % Show the figure after all components are created
