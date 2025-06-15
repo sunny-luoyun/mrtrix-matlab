@@ -15,7 +15,7 @@ classdef mrtrix < matlab.apps.AppBase
 
         % Button pushed function: 整理
         function ButtonPushed(app, event)
-            
+            run('sortimg.m')
         end
 
         % Button pushed function: 处理
