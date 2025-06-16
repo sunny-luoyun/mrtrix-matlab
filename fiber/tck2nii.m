@@ -31,7 +31,7 @@ function newPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,
 
     else
         if weight
-            cmd = sprintf('tckmap -contrast %s -vox 1.0 -template %s -tck_weights_in %/tracks_sift.tck %s/tracks.tck %s/tracks_Map.mif -force', ... 
+            cmd = sprintf('tckmap -contrast %s -vox 1.0 -template %s -tck_weights_in %s/tracks_sift.tck %s/tracks.tck %s/tracks_Map.mif -force', ... 
                 methodtest,template_path,currentPath,currentPath,currentPath);
             system(cmd)
         else
