@@ -14,7 +14,7 @@ function newPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,
     
     if gaosmooth 
         if weight
-            cmd = sprintf('tckmap -contrast tdi -vox 1.0 -template %s -fwhm_tck %d -tck_weights_in %/tracks_sift.tck %s/tracks.tck %s/tracks_Map.mif -force', ... 
+            cmd = sprintf('tckmap -contrast tdi -vox 1.0 -template %s -fwhm_tck %d -tck_weights_in %s/sift_weight.txt %s/tracks.tck %s/tracks_Map.mif -force', ... 
                 template_path,smooth,currentPath,currentPath,currentPath);
             system(cmd)
         else
@@ -22,6 +22,10 @@ function newPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,
                 template_path,smooth,currentPath,currentPath);
             system(cmd);
         end
+        cmd = sprintf('tckmap -contrast tdi -vox 1.0 -template %s -fwhm_tck %d %s/tracks_sift.tck %s/tracks_sift_Map.mif -force', ... 
+                template_path,smooth,currentPath,currentPath);
+            system(cmd);
+        
         outputpath = fullfile(workPath,'Results','tracksMap');
         mkdir(outputpath)
     
@@ -29,9 +33,13 @@ function newPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,
                 currentPath,outputpath,subFolder,methodtest,smooth);
         system(cmd)
 
+        cmd = sprintf('mrconvert %s/tracks_sift_Map.mif %s/%s_tracks_sift_%sMap_S%d.nii -force', ... 
+                currentPath,outputpath,subFolder,methodtest,smooth);
+        system(cmd)
+
     else
         if weight
-            cmd = sprintf('tckmap -contrast %s -vox 1.0 -template %s -tck_weights_in %s/tracks_sift.tck %s/tracks.tck %s/tracks_Map.mif -force', ... 
+            cmd = sprintf('tckmap -contrast %s -vox 1.0 -template %s -tck_weights_in %s/sift_weight.txt %s/tracks.tck %s/tracks_Map.mif -force', ... 
                 methodtest,template_path,currentPath,currentPath,currentPath);
             system(cmd)
         else
@@ -39,10 +47,19 @@ function newPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,
                 methodtest,template_path,currentPath,currentPath);
             system(cmd);
         end
+
+        cmd = sprintf('tckmap -contrast %s -vox 1.0 -template %s %s/tracks_sift.tck %s/tracks_sift_Map.mif -force', ... 
+                methodtest,template_path,currentPath,currentPath);
+            system(cmd);
+
         outputpath = fullfile(workPath,'Results','tracksMap');
         mkdir(outputpath)
     
         cmd = sprintf('mrconvert %s/tracks_Map.mif %s/%s_tracks_%sMap.nii -force', ... 
+                currentPath,outputpath,subFolder,methodtest);
+        system(cmd)
+
+        cmd = sprintf('mrconvert %s/tracks_sift_Map.mif %s/%s_tracks_sift_%sMap.nii -force', ... 
                 currentPath,outputpath,subFolder,methodtest);
         system(cmd)
     end
