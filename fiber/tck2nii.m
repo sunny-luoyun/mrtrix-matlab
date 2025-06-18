@@ -33,6 +33,9 @@ function newPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,
                 currentPath,outputpath,subFolder,methodtest,smooth);
         system(cmd)
 
+        outputpath = fullfile(workPath,'Results','trackssiftMap');
+        mkdir(outputpath)
+
         cmd = sprintf('mrconvert %s/tracks_sift_Map.mif %s/%s_tracks_sift_%sMap_S%d.nii -force', ... 
                 currentPath,outputpath,subFolder,methodtest,smooth);
         system(cmd)
@@ -58,6 +61,9 @@ function newPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,
         cmd = sprintf('mrconvert %s/tracks_Map.mif %s/%s_tracks_%sMap.nii -force', ... 
                 currentPath,outputpath,subFolder,methodtest);
         system(cmd)
+
+        outputpath = fullfile(workPath,'Results','trackssiftMap');
+        mkdir(outputpath)
 
         cmd = sprintf('mrconvert %s/tracks_sift_Map.mif %s/%s_tracks_sift_%sMap.nii -force', ... 
                 currentPath,outputpath,subFolder,methodtest);

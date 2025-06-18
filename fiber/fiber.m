@@ -288,7 +288,13 @@ classdef fiber < matlab.apps.AppBase
 
         % Button pushed function: addmask_Button
         function addmask_ButtonPushed(app, event)
-            
+            [file, path] = uigetfile('选择工作文件');
+            figure(app.UIFigure)
+            if isequal(file, 0) % 如果用户取消选择
+                figure(app.UIFigure)
+                return;
+            end
+            app.maskpath_EditField.Value = fullfile(path, file); % 显示完整的文件路径
         end
 
         % Value changed function: goin_EditField
