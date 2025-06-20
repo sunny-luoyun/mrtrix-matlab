@@ -36,7 +36,8 @@ classdef prepro < matlab.apps.AppBase
             app.work_EditField.Value = path;
         end
 
-        % Button pushed function: start_Button
+
+        % Button pushed function: work_Button
         function start_ButtonPushed(app, event)
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
@@ -54,7 +55,7 @@ classdef prepro < matlab.apps.AppBase
             % 获取所有以 'sub' 开头的文件夹
             subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'sub' 开头的文件夹
             subFolderNames = {subFolders.name};          % 提取文件夹名称
-        
+            
             % 开始计时
             startTime = tic;
             
@@ -66,54 +67,82 @@ classdef prepro < matlab.apps.AppBase
                 % 初始化当前处理路径
                 currentPath = subFolderPath;
                 startname = folderName;
-
+        
                 % 检查是否需要进行 change_format 处理
                 if app.format_CheckBox.Value
                     [currentPath,startname] = change_format(currentPath, subFolder, workPath); % 调用格式转换函数
-                    
                 end
-        
+            
                 % 检查是否需要进行 denoise 处理
                 if app.denoise_CheckBox.Value
                     [currentPath,startname] = denoise(currentPath, subFolder, workPath, startname); % 调用降噪处理函数
-                    
                 end
-
+        
                 % 检查是否需要进行 Gibbs Ring 消除处理
                 if app.Gibbs_CheckBox.Value
                     [currentPath,startname] = gibbs(currentPath, subFolder, workPath, startname); % 调用 Gibbs Ring 消除处理函数
                 end
-
-                % 检查是否需要进行头动矫正处理
-                if app.headmove_CheckBox.Value
-                    [currentPath,startname] = headmove(currentPath, subFolder, workPath, startname); % 调用头动矫正处理函数
+        
+                % 将当前子文件夹路径存储起来，用于后续并行处理头动校正
+                subFolderPaths{i} = currentPath;
+                startNames{i} = startname;
+            end
+        
+            % 并行处理头动校正
+            if app.headmove_CheckBox.Value
+                parfor i = 1:length(subFolderPaths) % 使用 parfor 并行处理
+                    currentPath = subFolderPaths{i};
+                    subFolder = subFolderNames{i};
+                    startname = startNames{i};
+                    [currentPath, startname] = headmove(currentPath, subFolder, workPath, startname); % 调用头动矫正处理函数
+                    % 更新路径和名称，用于后续处理
+                    subFolderPaths{i} = currentPath;
+                    startNames{i} = startname;
                 end
-
+            end
+        
+            % 继续后续处理
+            for i = 1:length(subFolderNames)
+                currentPath = subFolderPaths{i};
+                subFolder = subFolderNames{i};
+                startname = startNames{i};
+        
                 % 检查是否需要进行 bias 场矫正处理
                 if app.bias_CheckBox.Value
                     [currentPath,startname] = bias(currentPath, subFolder, workPath, startname); % 调用 bias 场矫正处理函数
                 end
-
+        
                 % 检查是否需要进行 T1_to_MNI 处理
                 if app.T1_to_MNI_CheckBox.Value
                     T1toMNI(subFolder, workPath); % 调用 T1_to_MNI 处理函数
                 end
-
+        
                 % 检查是否需要进行 dwi_to_MNI 处理
                 if app.dwi_to_MNI_CheckBox.Value
-                    dwitoMNI(subFolder, workPath,startname); % 调用 dwi_to_MNI 处理函数
+                    dwitoMNI(subFolder, workPath, startname); % 调用 dwi_to_MNI 处理函数
                 end
-        
+            
                 % 检查是否需要进行 mask 处理
                 if app.mask_CheckBox.Value
                     mask(currentPath, subFolder, workPath, startname); % 调用 mask 处理函数
                 end
-        
-                % 检查是否需要进行 T1 分割处理
-                if app.T1corg_CheckBox.Value
+
+                % 将当前子文件夹路径存储起来，用于后续并行处理 T1 分割
+                subFolderPathsT1{i} = currentPath;
+                startNamesT1{i} = startname;
+            end
+
+             % 并行处理 T1 分割
+            if app.T1corg_CheckBox.Value
+                parfor i = 1:length(subFolderPathsT1) % 使用 parfor 并行处理
+                    currentPath = subFolderPathsT1{i};
+                    subFolder = subFolderNames{i};
+                    startname = startNamesT1{i};
                     T1corg(currentPath, subFolder, workPath, startname); % 调用 T1 分割处理函数
                 end
             end
+            
+              
             
             % 结束计时
             elapsedTime = toc(startTime); % 获取处理总时间（秒）

@@ -126,10 +126,10 @@ classdef fiber < matlab.apps.AppBase
 
                 % 检查是否需要进行 生成权重文件 处理
                 if app.tckweight_CheckBox.Value
-
                     currentPath = weightc(workPath,subFolder,currentPath,startfloder,fodfolder);    
-                
                 end
+
+                % 检查是否需要进行 简化sift 处理
 
                 if app.sift_CheckBox.Value
                     decnum = app.decr_nunEditField.Value;
