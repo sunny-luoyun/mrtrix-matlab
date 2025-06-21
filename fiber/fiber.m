@@ -75,7 +75,7 @@ classdef fiber < matlab.apps.AppBase
         function start_ButtonPushed(app, event)
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
-            folderName = app.start_EditField.Value;    % 获取文件夹名称（起始文件夹）
+            folderName = app.start_EditField.Value; % 获取文件夹名称（起始文件夹）
             
             % 拼接完整路径
             fullPath = fullfile(workPath, folderName);
@@ -88,11 +88,16 @@ classdef fiber < matlab.apps.AppBase
             
             % 获取所有以 'sub' 开头的文件夹
             subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'sub' 开头的文件夹
-            subFolderNames = {subFolders.name};          % 提取文件夹名称
-        
+            subFolderNames = {subFolders.name}; % 提取文件夹名称
+            
             % 开始计时
             startTime = tic;
             
+            % 初始化存储路径的变量
+            fiberbuildResults = cell(length(subFolderNames), 1); % 用于存储纤维创建的结果
+            weightPaths = cell(length(subFolderNames), 1); % 用于存储生成权重文件的路径
+            siftPaths = cell(length(subFolderNames), 1); % 用于存储简化sift的路径
+        
             % 遍历每个子文件夹
             for i = 1:length(subFolderNames)
                 subFolder = subFolderNames{i};
@@ -102,11 +107,10 @@ classdef fiber < matlab.apps.AppBase
                 currentPath = subFolderPath;
                 startfloder = folderName;
                 fodfolder = '';
-
+                
                 % 检查是否需要进行 纤维创建 处理
                 if app.fiberbuild_CheckBox.Value
-                    
-                    option =  app.track_ButtonGroup.SelectedObject;
+                    option = app.track_ButtonGroup.SelectedObject;
                     optiontest = option.Text;
                     mode = app.mode_ButtonGroup.SelectedObject;
                     modetest = mode.Text;
@@ -119,23 +123,76 @@ classdef fiber < matlab.apps.AppBase
                     fibernum = app.fibernumEditField.Value;
                     roi = app.roi_EditField.Value;
                     mask = app.maskpath_EditField.Value;
-
-                    [currentPath,fodfolder] = fiberbuild(workPath,subFolder,currentPath,startfloder,optiontest,goin,angle,min,max,fod,trytime,fibernum,modetest,roi,mask); 
                     
+                    % 执行纤维创建，并存储结果
+                    [currentPath, fodfolder] = fiberbuild(workPath, subFolder, currentPath, startfloder, optiontest, goin, angle, min, max, fod, trytime, fibernum, modetest, roi, mask);
+                    fiberbuildResults{i} = {currentPath, fodfolder}; % 存储纤维创建的结果
                 end
-
-                % 检查是否需要进行 生成权重文件 处理
-                if app.tckweight_CheckBox.Value
-                    currentPath = weightc(workPath,subFolder,currentPath,startfloder,fodfolder);    
+                
+                % 如果需要并行处理，则使用纤维创建的结果
+                weightPaths{i} = {currentPath, startfloder, fodfolder};
+                siftPaths{i} = {currentPath, startfloder, fodfolder};
+            end
+            
+            % 创建一个大小为 5 的并行池
+            if isempty(gcp('nocreate'))
+                parpool('local', 5); % 创建一个大小为 5 的并行池
+            end
+            
+            % 并行处理 生成权重文件
+            if app.tckweight_CheckBox.Value
+                parfor i = 1:length(weightPaths)
+                    currentPath = weightPaths{i}{1};
+                    startfloder = weightPaths{i}{2};
+                    fodfolder = weightPaths{i}{3};
+                    currentPath = weightc(workPath, subFolderNames{i}, currentPath, startfloder, fodfolder);
+                    % 更新路径
+                    weightPaths{i} = {currentPath, startfloder, fodfolder};
                 end
-
-                % 检查是否需要进行 简化sift 处理
-
-                if app.sift_CheckBox.Value
+            end
+            
+            % 并行处理 简化sift
+            if app.sift_CheckBox.Value
+                parfor i = 1:length(siftPaths)
+                    currentPath = siftPaths{i}{1};
+                    startfloder = siftPaths{i}{2};
+                    fodfolder = siftPaths{i}{3};
                     decnum = app.decr_nunEditField.Value;
-                    currentPath = sift(workPath,subFolder,currentPath,startfloder,fodfolder,decnum);
+                    currentPath = sift(workPath, subFolderNames{i}, currentPath, startfloder, fodfolder, decnum);
+                    % 更新路径
+                    siftPaths{i} = {currentPath, startfloder, fodfolder};
                 end
-
+            end
+            
+            % 关闭并行池
+            delete(gcp('nocreate'));
+            
+            % 继续后续处理
+            for i = 1:length(subFolderNames)
+                subFolder = subFolderNames{i};
+                subFolderPath = fullfile(fullPath, subFolder); % 获取子文件夹的完整路径
+                currentPath = subFolderPath;
+                startfloder = folderName;
+                fodfolder = '';
+                
+                % 如果前面有纤维创建步骤，获取纤维创建后的路径
+                if app.fiberbuild_CheckBox.Value
+                    currentPath = fiberbuildResults{i}{1};
+                    fodfolder = fiberbuildResults{i}{2};
+                end
+                
+                % 如果前面有生成权重文件步骤，获取生成权重文件后的路径
+                if app.tckweight_CheckBox.Value
+                    currentPath = weightPaths{i}{1};
+                    fodfolder = weightPaths{i}{3};
+                end
+                
+                % 如果前面有简化sift步骤，获取简化sift后的路径
+                if app.sift_CheckBox.Value
+                    currentPath = siftPaths{i}{1};
+                    fodfolder = siftPaths{i}{3};
+                end
+                
                 % 检查是否需要进行 格式转换 处理
                 if app.tck2niiCheckBox.Value
                     method = app.duibi_ButtonGroup.SelectedObject;
@@ -143,8 +200,7 @@ classdef fiber < matlab.apps.AppBase
                     smooth = app.smooth_EditField.Value;
                     weight = app.useweight_CheckBox.Value;
                     gaosmooth = app.gaosmooth_CheckBox.Value;
-                    currentPath = tck2nii(workPath,subFolder,currentPath,startfloder,fodfolder,methodtest,smooth,weight,gaosmooth);
-                    
+                    currentPath = tck2nii(workPath, subFolder, currentPath, startfloder, fodfolder, methodtest, smooth, weight, gaosmooth);
                 end
             end
             
