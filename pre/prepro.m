@@ -39,6 +39,9 @@ classdef prepro < matlab.apps.AppBase
 
         % Button pushed function: work_Button
         function start_ButtonPushed(app, event)
+            
+            app.start_Button.Enable = 'off';
+
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.EditField.Value;    % 获取文件夹名称（起始文件夹）
@@ -49,6 +52,7 @@ classdef prepro < matlab.apps.AppBase
             % 检查路径是否存在
             if ~isfolder(fullPath)
                 uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                app.start_Button.Enable = "on";
                 return;
             end
             
@@ -67,7 +71,7 @@ classdef prepro < matlab.apps.AppBase
                 % 初始化当前处理路径
                 currentPath = subFolderPath;
                 startname = folderName;
-        
+            
                 % 检查是否需要进行 change_format 处理
                 if app.format_CheckBox.Value
                     [currentPath,startname] = change_format(currentPath, subFolder, workPath); % 调用格式转换函数
@@ -77,17 +81,17 @@ classdef prepro < matlab.apps.AppBase
                 if app.denoise_CheckBox.Value
                     [currentPath,startname] = denoise(currentPath, subFolder, workPath, startname); % 调用降噪处理函数
                 end
-        
+            
                 % 检查是否需要进行 Gibbs Ring 消除处理
                 if app.Gibbs_CheckBox.Value
                     [currentPath,startname] = gibbs(currentPath, subFolder, workPath, startname); % 调用 Gibbs Ring 消除处理函数
                 end
-        
+            
                 % 将当前子文件夹路径存储起来，用于后续并行处理头动校正
                 subFolderPaths{i} = currentPath;
                 startNames{i} = startname;
             end
-        
+            
             % 并行处理头动校正
             if app.headmove_CheckBox.Value
                 parfor i = 1:length(subFolderPaths) % 使用 parfor 并行处理
@@ -100,23 +104,23 @@ classdef prepro < matlab.apps.AppBase
                     startNames{i} = startname;
                 end
             end
-        
+            
             % 继续后续处理
             for i = 1:length(subFolderNames)
                 currentPath = subFolderPaths{i};
                 subFolder = subFolderNames{i};
                 startname = startNames{i};
-        
+            
                 % 检查是否需要进行 bias 场矫正处理
                 if app.bias_CheckBox.Value
                     [currentPath,startname] = bias(currentPath, subFolder, workPath, startname); % 调用 bias 场矫正处理函数
                 end
-        
+            
                 % 检查是否需要进行 T1_to_MNI 处理
                 if app.T1_to_MNI_CheckBox.Value
                     T1toMNI(subFolder, workPath); % 调用 T1_to_MNI 处理函数
                 end
-        
+            
                 % 检查是否需要进行 dwi_to_MNI 处理
                 if app.dwi_to_MNI_CheckBox.Value
                     dwitoMNI(subFolder, workPath, startname); % 调用 dwi_to_MNI 处理函数
@@ -126,13 +130,13 @@ classdef prepro < matlab.apps.AppBase
                 if app.mask_CheckBox.Value
                     mask(currentPath, subFolder, workPath, startname); % 调用 mask 处理函数
                 end
-
+        
                 % 将当前子文件夹路径存储起来，用于后续并行处理 T1 分割
                 subFolderPathsT1{i} = currentPath;
                 startNamesT1{i} = startname;
             end
-
-             % 并行处理 T1 分割
+        
+            % 并行处理 T1 分割
             if app.T1corg_CheckBox.Value
                 parfor i = 1:length(subFolderPathsT1) % 使用 parfor 并行处理
                     currentPath = subFolderPathsT1{i};
@@ -141,8 +145,6 @@ classdef prepro < matlab.apps.AppBase
                     T1corg(currentPath, subFolder, workPath, startname); % 调用 T1 分割处理函数
                 end
             end
-            
-              
             
             % 结束计时
             elapsedTime = toc(startTime); % 获取处理总时间（秒）
@@ -155,6 +157,8 @@ classdef prepro < matlab.apps.AppBase
             % 显示处理完成提示和处理时间
             uialert(app.UIFigure, ['处理完成' char(10) '共耗时：', num2str(hours), '小时 ', ...
                 num2str(minutes), '分钟 ', num2str(seconds), '秒'], '完成提示');
+
+            app.start_Button.Enable = "on";
         end
 
         % Value changed function: denoise_CheckBox

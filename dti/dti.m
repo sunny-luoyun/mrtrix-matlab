@@ -44,6 +44,7 @@ classdef dti < matlab.apps.AppBase
 
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
+            app.start_Button.Enable = "off";
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.EditField.Value;    % 获取文件夹名称（起始文件夹）
@@ -54,6 +55,7 @@ classdef dti < matlab.apps.AppBase
             % 检查路径是否存在
             if ~isfolder(fullPath)
                 uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                app.start_Button.Enable = "on";
                 return;
             end
             
@@ -151,6 +153,7 @@ classdef dti < matlab.apps.AppBase
             % 显示处理完成提示和处理时间
             uialert(app.UIFigure, ['处理完成' char(10) '共耗时：', num2str(hours), '小时 ', ...
                 num2str(minutes), '分钟 ', num2str(seconds), '秒'], '完成提示');
+            app.start_Button.Enable = "on";
         end
 
         % Value changed function: dt_CheckBox
