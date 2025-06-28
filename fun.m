@@ -40,7 +40,8 @@ classdef fun < matlab.apps.AppBase
 
         % Button pushed function: net_Button
         function net_ButtonPushed(app, event)
-            
+            addpath('map')
+            run('build_map.m')
         end
     end
 
