@@ -105,7 +105,7 @@ classdef fun < matlab.apps.AppBase
             app.net_Button = uibutton(app.MRtrixUIFigure, 'push');
             app.net_Button.ButtonPushedFcn = createCallbackFcn(app, @net_ButtonPushed, true);
             app.net_Button.Position = [52 37 158 37];
-            app.net_Button.Text = '纤维脑网络构建';
+            app.net_Button.Text = '纤维网络矩阵构建';
 
             % Show the figure after all components are created
             app.MRtrixUIFigure.Visible = 'on';
