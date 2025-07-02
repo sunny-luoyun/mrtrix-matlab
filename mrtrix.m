@@ -117,8 +117,11 @@ classdef mrtrix < matlab.apps.AppBase
         % Construct app
         function app = mrtrix
 
-            % 调用 env.m 文件
-            run('env.m');  % 确保 env.m 文件的路径是正确的
+            % mac系统调用 env.m 文件
+            
+            if ismac
+                run('env.m');  % 确保 env.m 文件的路径是正确的
+            end
 
             % Create UIFigure and components
             createComponents(app)
