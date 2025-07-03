@@ -36,6 +36,7 @@ classdef fiber < matlab.apps.AppBase
         Label_3              matlab.ui.control.Label
         mode_ButtonGroup     matlab.ui.container.ButtonGroup
         maskButton           matlab.ui.control.RadioButton
+        moreroiButton        matlab.ui.control.RadioButton
         roiButton            matlab.ui.control.RadioButton
         brainButton          matlab.ui.control.RadioButton
         track_ButtonGroup    matlab.ui.container.ButtonGroup
@@ -47,6 +48,7 @@ classdef fiber < matlab.apps.AppBase
         start_EditField      matlab.ui.control.EditField
         Label_2              matlab.ui.control.Label
         find_Button          matlab.ui.control.Button
+        defroi_Button        matlab.ui.control.Button
         start_Button         matlab.ui.control.Button
         tckweight_CheckBox   matlab.ui.control.CheckBox
         sift_CheckBox        matlab.ui.control.CheckBox
@@ -55,6 +57,7 @@ classdef fiber < matlab.apps.AppBase
         Label                matlab.ui.control.Label
         sub_TextArea         matlab.ui.control.TextArea
         fiberbuild_CheckBox  matlab.ui.control.CheckBox
+        ROIConfig
     end
 
     % Callbacks that handle component events
@@ -70,10 +73,14 @@ classdef fiber < matlab.apps.AppBase
             end
             app.work_EditField.Value = path;
         end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
-            app.start_Button.Enable = "off";
+            
+        
+            
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.start_EditField.Value; % 获取文件夹名称（起始文件夹）
@@ -125,9 +132,11 @@ classdef fiber < matlab.apps.AppBase
                     fibernum = app.fibernumEditField.Value;
                     roi = app.roi_EditField.Value;
                     mask = app.maskpath_EditField.Value;
+                    % 提取 ROIDef
+                    ROIDef = app.ROIConfig.ROIDef;
                     
                     % 执行纤维创建，并存储结果
-                    [currentPath, fodfolder] = fiberbuild(workPath, subFolder, currentPath, startfloder, optiontest, goin, angle, min, max, fod, trytime, fibernum, modetest, roi, mask);
+                    [currentPath, fodfolder] = fiberbuild(workPath, subFolder, currentPath, startfloder, optiontest, goin, angle, min, max, fod, trytime, fibernum, modetest, roi, mask, ROIDef);
                     fiberbuildResults{i} = {currentPath, fodfolder}; % 存储纤维创建的结果
                 end
                 
@@ -301,6 +310,31 @@ classdef fiber < matlab.apps.AppBase
             app.sub_TextArea.Value = strjoin(subFolderNames, newline); % 将文件夹名称用换行符连接后显示
         end
 
+        % Button pushed function: DefROIButton
+        function defroi_ButtonPushed(app, event)
+
+            % 调用 DPABI_ROIList GUI
+            Cfg = DPABI_ROIList();
+            figure(app.UIFigure);
+
+            % 检查用户是否取消了操作
+            if ~isempty(Cfg)
+                % 确保 ROIDef 和 ROISelectedIndex 是单元格数组
+                if ~iscell(Cfg.ROIDef)
+                    Cfg.ROIDef = {Cfg.ROIDef};
+                end
+                if ~iscell(Cfg.ROISelectedIndex)
+                    Cfg.ROISelectedIndex = {Cfg.ROISelectedIndex};
+                end
+                
+                % 将 Cfg 保存为 App 的属性
+                app.ROIConfig = Cfg;
+                
+                % 打印 ROIConfig，确认是否正确设置
+                disp(app.ROIConfig);
+            end
+        end
+
         % Selection changed function: track_ButtonGroup
         function track_ButtonGroupSelectionChanged(app, event)
             selectedButton = app.track_ButtonGroup.SelectedObject;
@@ -315,20 +349,28 @@ classdef fiber < matlab.apps.AppBase
                 app.maskpath_EditField.Enable = "off";
                 app.Label_3.Enable = "off";
                 app.Label_4.Enable = "off"; 
-
-            elseif strcmp(selectedButton.Text, '基于种子点')
+                app.defroi_Button.Enable = "off";
+            elseif strcmp(selectedButton.Text, '基于单种子点')
                 app.roi_EditField.Enable = "on";
                 app.Label_3.Enable = "on";
                 app.addmask_Button.Enable = "off";
                 app.maskpath_EditField.Enable = "off";
                 app.Label_4.Enable = "off"; 
-
-            elseif strcmp(selectedButton.Text, '基于mask')
+                app.defroi_Button.Enable = "off";
+            elseif strcmp(selectedButton.Text, '基于单mask')
                 app.roi_EditField.Enable = "off";
                 app.addmask_Button.Enable = "on";
                 app.maskpath_EditField.Enable = "on";
                 app.Label_3.Enable = "off";
-                app.Label_4.Enable = "on"; 
+                app.Label_4.Enable = "on";
+                app.defroi_Button.Enable = "off";
+            elseif strcmp(selectedButton.Text, '基于多roi')
+                app.roi_EditField.Enable = "off";
+                app.addmask_Button.Enable = "off";
+                app.maskpath_EditField.Enable = "off";
+                app.Label_3.Enable = "off";
+                app.Label_4.Enable = "off";
+                app.defroi_Button.Enable = "on";
 
             end
         end
@@ -525,6 +567,13 @@ classdef fiber < matlab.apps.AppBase
             app.find_Button.Position = [341 409 75 23];
             app.find_Button.Text = '检索';
 
+            % Create defroi_Button
+            app.defroi_Button = uibutton(app.UIFigure, 'push');
+            app.defroi_Button.ButtonPushedFcn = createCallbackFcn(app, @defroi_ButtonPushed, true);
+            app.defroi_Button.Position = [380 220 75 23];
+            app.defroi_Button.Text = '定义ROI';
+            app.defroi_Button.Enable = "off";
+
             % Create Label_2
             app.Label_2 = uilabel(app.UIFigure);
             app.Label_2.HorizontalAlignment = 'right';
@@ -572,27 +621,31 @@ classdef fiber < matlab.apps.AppBase
             app.mode_ButtonGroup = uibuttongroup(app.UIFigure);
             app.mode_ButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @mode_ButtonGroupSelectionChanged, true);
             app.mode_ButtonGroup.Title = '追踪模式';
-            app.mode_ButtonGroup.Position = [175 224 123 90];
+            app.mode_ButtonGroup.Position = [175 209 123 105];
             app.mode_ButtonGroup.Enable = "off";
 
             % Create brainButton
             app.brainButton = uiradiobutton(app.mode_ButtonGroup);
             app.brainButton.Text = '全脑追踪';
-            app.brainButton.Position = [11 44 70 22];
+            app.brainButton.Position = [11 60 70 22];
             app.brainButton.Value = true;
 
             % Create roiButton
             app.roiButton = uiradiobutton(app.mode_ButtonGroup);
-            app.roiButton.Text = '基于种子点';
-            app.roiButton.Position = [11 23 82 22];
+            app.roiButton.Text = '基于单种子点';
+            app.roiButton.Position = [11 40 90 22];
             
 
             % Create maskButton
             app.maskButton = uiradiobutton(app.mode_ButtonGroup);
-            app.maskButton.Text = '基于mask';
-            app.maskButton.Position = [11 1 75 22];
-            
+            app.maskButton.Text = '基于单mask';
+            app.maskButton.Position = [11 20 82 22];
 
+            % Create maskButton
+            app.moreroiButton = uiradiobutton(app.mode_ButtonGroup);
+            app.moreroiButton.Text = '基于多roi';
+            app.moreroiButton.Position = [11 0 82 22];
+            
             % Create Label_3
             app.Label_3 = uilabel(app.UIFigure);
             app.Label_3.HorizontalAlignment = 'right';
