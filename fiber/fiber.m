@@ -133,7 +133,23 @@ classdef fiber < matlab.apps.AppBase
                     roi = app.roi_EditField.Value;
                     mask = app.maskpath_EditField.Value;
                     % 提取 ROIDef
-                    ROIDef = app.ROIConfig.ROIDef;
+                    ROIDef = [];   % 默认：全脑追踪用不到
+
+                    if strcmp(modetest,'基于多roi')
+                    
+                        if isempty(app.ROIConfig) ...
+                                || ~isstruct(app.ROIConfig) ...
+                                || ~isfield(app.ROIConfig,'ROIDef') ...
+                                || isempty(app.ROIConfig.ROIDef)
+                    
+                            uialert(app.UIFigure, ...
+                                '当前是“基于多roi”，但尚未定义ROI（请先点击 DefROI）', ...
+                                '缺少ROI定义');
+                            return;
+                        end
+                    
+                        ROIDef = app.ROIConfig.ROIDef;
+                    end
                     
                     % 执行纤维创建，并存储结果
                     [currentPath, fodfolder] = fiberbuild(workPath, subFolder, currentPath, startfloder, optiontest, goin, angle, min, max, fod, trytime, fibernum, modetest, roi, mask, ROIDef);
