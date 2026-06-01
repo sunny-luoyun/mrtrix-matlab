@@ -23,10 +23,10 @@ classdef mrtrix < matlab.apps.AppBase
             run('fun.m')
         end
 
-        % Button pushed function: 相关
+        % Button pushed function: 统计
         function Button_3Pushed(app, event)
-  
-            
+            addpath('stats');
+            run('stats.m');
         end
 
         % Button pushed function: 图形
@@ -78,7 +78,7 @@ classdef mrtrix < matlab.apps.AppBase
             app.Button_3.ButtonPushedFcn = createCallbackFcn(app, @Button_3Pushed, true);
             app.Button_3.FontSize = 14;
             app.Button_3.Position = [51 111 170 52];
-            app.Button_3.Text = '结构功能矩阵相关分析';
+            app.Button_3.Text = '统计分析';
 
             % Create Button_4
             app.Button_4 = uibutton(app.UIFigure, 'push');
