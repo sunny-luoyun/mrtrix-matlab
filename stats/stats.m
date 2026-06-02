@@ -118,6 +118,8 @@ classdef stats < matlab.apps.AppBase
         mrcluster_tfce_h_EditField         matlab.ui.control.NumericEditField
         mrcluster_nonstationarity_CheckBox matlab.ui.control.CheckBox
         mrcluster_notest_CheckBox          matlab.ui.control.CheckBox
+        mrcluster_cluster_CheckBox         matlab.ui.control.CheckBox
+        mrcluster_threshold_EditField      matlab.ui.control.NumericEditField
         mrcluster_connect_ButtonGroup      matlab.ui.container.ButtonGroup
         mrcluster_connect6_Radio           matlab.ui.control.RadioButton
         mrcluster_connect26_Radio          matlab.ui.control.RadioButton
@@ -426,6 +428,30 @@ classdef stats < matlab.apps.AppBase
             if p == 0, return; end
             figure(app.UIFigure);
             app.mrcluster_output_EditField.Value = p;
+        end
+
+        % ---- mrcluster notest toggle ----
+        function mrcluster_notest_ValueChanged(app, ~)
+            isDisabled = app.mrcluster_notest_CheckBox.Value;
+            app.mrcluster_nshuffles_EditField.Enable = ~isDisabled;
+            app.mrcluster_tfce_dh_EditField.Enable = ~isDisabled;
+            app.mrcluster_tfce_e_EditField.Enable = ~isDisabled;
+            app.mrcluster_tfce_h_EditField.Enable = ~isDisabled;
+            app.mrcluster_connect6_Radio.Enable = ~isDisabled;
+            app.mrcluster_connect26_Radio.Enable = ~isDisabled;
+            app.mrcluster_nonstationarity_CheckBox.Enable = ~isDisabled;
+            app.mrcluster_cluster_CheckBox.Enable = ~isDisabled;
+            app.mrcluster_threshold_EditField.Enable = ~isDisabled && app.mrcluster_cluster_CheckBox.Value;
+        end
+
+        % ---- mrcluster cluster toggle ----
+        function mrcluster_cluster_ValueChanged(app, ~)
+            isCluster = app.mrcluster_cluster_CheckBox.Value;
+            app.mrcluster_tfce_dh_EditField.Enable = ~isCluster;
+            app.mrcluster_tfce_e_EditField.Enable = ~isCluster;
+            app.mrcluster_tfce_h_EditField.Enable = ~isCluster;
+            app.mrcluster_nonstationarity_CheckBox.Enable = ~isCluster;
+            app.mrcluster_threshold_EditField.Enable = isCluster && ~app.mrcluster_notest_CheckBox.Value;
         end
 
         % ---- mrcluster update matrix ----
@@ -783,6 +809,7 @@ classdef stats < matlab.apps.AppBase
             dh = app.mrcluster_tfce_dh_EditField.Value;
             e  = app.mrcluster_tfce_e_EditField.Value;
             h  = app.mrcluster_tfce_h_EditField.Value;
+            threshold = app.mrcluster_threshold_EditField.Value;
 
             cmd = sprintf('mrclusterstats "%s" "%s"', inputListFile, designFile);
             if ~isempty(C)
@@ -792,16 +819,23 @@ classdef stats < matlab.apps.AppBase
             if ~isempty(ft)
                 cmd = [cmd sprintf(' -ftests "%s"', ftestFile)];
             end
-            cmd = [cmd sprintf(' -nshuffles %d', nshuffles)];
-            cmd = [cmd sprintf(' -tfce_dh %g -tfce_e %g -tfce_h %g', dh, e, h)];
-            if app.mrcluster_nonstationarity_CheckBox.Value
-                cmd = [cmd ' -nonstationarity'];
-            end
             if app.mrcluster_notest_CheckBox.Value
                 cmd = [cmd ' -notest'];
-            end
-            if app.mrcluster_connect26_Radio.Value
-                cmd = [cmd ' -connectivity'];
+            elseif app.mrcluster_cluster_CheckBox.Value && threshold > 0
+                cmd = [cmd sprintf(' -nshuffles %d', nshuffles)];
+                cmd = [cmd sprintf(' -threshold %g', threshold)];
+                if app.mrcluster_connect26_Radio.Value
+                    cmd = [cmd ' -connectivity'];
+                end
+            else
+                cmd = [cmd sprintf(' -nshuffles %d', nshuffles)];
+                cmd = [cmd sprintf(' -tfce_dh %g -tfce_e %g -tfce_h %g', dh, e, h)];
+                if app.mrcluster_nonstationarity_CheckBox.Value
+                    cmd = [cmd ' -nonstationarity'];
+                end
+                if app.mrcluster_connect26_Radio.Value
+                    cmd = [cmd ' -connectivity'];
+                end
             end
             cmd = [cmd ' -force'];
 
@@ -1431,9 +1465,22 @@ classdef stats < matlab.apps.AppBase
             app.mrcluster_notest_CheckBox = uicheckbox(app.mrcluster_Panel);
             app.mrcluster_notest_CheckBox.Position = [155, 142, 100, 22];
             app.mrcluster_notest_CheckBox.Text = '不执行检验';
+            app.mrcluster_notest_CheckBox.ValueChangedFcn = createCallbackFcn(app, @mrcluster_notest_ValueChanged);
+
+            app.mrcluster_cluster_CheckBox = uicheckbox(app.mrcluster_Panel);
+            app.mrcluster_cluster_CheckBox.Position = [265, 142, 100, 22];
+            app.mrcluster_cluster_CheckBox.Text = '传统簇分析';
+            app.mrcluster_cluster_CheckBox.ValueChangedFcn = createCallbackFcn(app, @mrcluster_cluster_ValueChanged);
+
+            uilabel(app.mrcluster_Panel, 'Position', [585, 172, 35, 22], ...
+                'HorizontalAlignment', 'right', 'Text', '阈值');
+            app.mrcluster_threshold_EditField = uieditfield(app.mrcluster_Panel, 'numeric');
+            app.mrcluster_threshold_EditField.Position = [625, 172, 50, 22];
+            app.mrcluster_threshold_EditField.Value = 0;
+            app.mrcluster_threshold_EditField.Enable = 'off';
 
             app.mrcluster_connect_ButtonGroup = uibuttongroup(app.mrcluster_Panel);
-            app.mrcluster_connect_ButtonGroup.Position = [270, 141, 130, 26];
+            app.mrcluster_connect_ButtonGroup.Position = [380, 141, 130, 26];
             app.mrcluster_connect_ButtonGroup.Title = '';
             app.mrcluster_connect6_Radio = uiradiobutton(app.mrcluster_connect_ButtonGroup);
             app.mrcluster_connect6_Radio.Position = [10, 3, 60, 22];
