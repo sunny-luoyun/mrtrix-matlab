@@ -70,6 +70,10 @@ function buildmap(workPath, subFolder, currentPath,maskpath,sy,zero,len,rare,zb,
     % 将变量保存为 MAT 文件
     save(mat_file, 'NetworkMatrix');
 
+    % 复制 CSV 到 GlobalMap 文件夹
+    csv_result = fullfile(resultpath, [subFolder '_BN.csv']);
+    copyfile(csv_file, csv_result);
+
     % 检查 brain_mask 是否为空
     if isempty(brainnet)
         % 如果为空，直接跳过后续操作
@@ -94,6 +98,10 @@ function buildmap(workPath, subFolder, currentPath,maskpath,sy,zero,len,rare,zb,
         % 保存为新的 mat 文件
         output_mat_file_path = fullfile(path_results, [subFolder '_ROIBN.mat']);
         save(output_mat_file_path, 'matrix_32x32', '-mat');
+
+        % 将子矩阵也写出为 CSV
+        csv_roi_file = fullfile(path_results, [subFolder '_ROIBN.csv']);
+        writematrix(matrix_32x32, csv_roi_file);
     end
 
 end
