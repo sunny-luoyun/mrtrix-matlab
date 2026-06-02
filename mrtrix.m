@@ -26,7 +26,7 @@ classdef mrtrix < matlab.apps.AppBase
         % Button pushed function: 统计
         function Button_3Pushed(app, event)
             addpath('stats');
-            run('stats.m');
+            run('stats_fun.m');
         end
 
         % Button pushed function: 图形
