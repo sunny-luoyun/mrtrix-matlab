@@ -12,8 +12,7 @@ classdef MainApp < matlab.apps.AppBase
 
         % Button pushed function: DefROIButton
         function defroi_ButtonPushed(app, event)
-            % 调用 DPABI_ROIList GUI
-            Cfg = DPABI_ROIList();
+            Cfg = ROIListDialog();
 
             % 检查用户是否取消了操作
             if isempty(Cfg)

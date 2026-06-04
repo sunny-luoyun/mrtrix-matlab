@@ -329,8 +329,7 @@ classdef fiber < matlab.apps.AppBase
         % Button pushed function: DefROIButton
         function defroi_ButtonPushed(app, event)
 
-            % 调用 DPABI_ROIList GUI
-            Cfg = DPABI_ROIList();
+            Cfg = ROIListDialog();
             figure(app.UIFigure);
 
             % 检查用户是否取消了操作
