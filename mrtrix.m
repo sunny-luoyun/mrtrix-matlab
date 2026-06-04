@@ -40,23 +40,40 @@ classdef mrtrix < matlab.apps.AppBase
 
         function checkForUpdate(app)
             appDir = fileparts(mfilename('fullpath'));
-            [status, result] = system(['git -C "', appDir, '" rev-parse HEAD 2>/dev/null']);
-            if status ~= 0
+            localSHA = getLocalVersion(app, appDir);
+            if isempty(localSHA)
                 return;
             end
-            localSHA = strtrim(result);
+            remoteSHA = getRemoteVersion(app);
+            if isempty(remoteSHA)
+                return;
+            end
+            if ~strcmp(localSHA, remoteSHA)
+                showUpdateDialog(app, localSHA(1:7), remoteSHA(1:7), appDir);
+            end
+        end
 
+        function localSHA = getLocalVersion(~, appDir)
+            [status, result] = system(['git -C "', appDir, '" rev-parse HEAD 2>/dev/null']);
+            if status == 0
+                localSHA = strtrim(result);
+                return;
+            end
+            try
+                localSHA = strtrim(fileread(fullfile(appDir, 'version.txt')));
+            catch
+                localSHA = '';
+            end
+        end
+
+        function remoteSHA = getRemoteVersion(~)
             try
                 url = 'https://gitee.com/api/v5/repos/luoyun-weixi/mrtrix-matlab/commits/main';
                 opts = weboptions('Timeout', 5);
                 data = webread(url, opts);
                 remoteSHA = data.sha;
             catch
-                return;
-            end
-
-            if ~strcmp(localSHA, remoteSHA)
-                showUpdateDialog(app, localSHA(1:7), remoteSHA(1:7), appDir);
+                remoteSHA = '';
             end
         end
 
@@ -81,12 +98,37 @@ classdef mrtrix < matlab.apps.AppBase
         end
 
         function doUpdate(app, dlg, appDir)
-            [status, result] = system(['git -C "', appDir, '" pull 2>&1']);
-            if status ~= 0
-                uialert(dlg, ['更新失败:\n' result], '错误', 'Icon', 'error');
+            [status, ~] = system(['git -C "', appDir, '" pull 2>&1']);
+            if status == 0
+                restartApp(app, dlg);
                 return;
             end
+            if zipUpdate(app, appDir)
+                restartApp(app, dlg);
+            else
+                uialert(dlg, '更新失败，请检查网络连接后重试。', '错误', 'Icon', 'error');
+            end
+        end
 
+        function success = zipUpdate(~, appDir)
+            try
+                zipUrl = 'https://gitee.com/luoyun-weixi/mrtrix-matlab/repository/archive/main.zip';
+                tempDir = tempname;
+                mkdir(tempDir);
+                websave(fullfile(tempDir, 'update.zip'), zipUrl);
+                unzip(fullfile(tempDir, 'update.zip'), tempDir);
+                files = dir(tempDir);
+                subdirIdx = find([files.isdir] & ~ismember({files.name}, {'.', '..'}), 1);
+                extractedDir = fullfile(tempDir, files(subdirIdx).name);
+                copyfile(fullfile(extractedDir, '*'), appDir, 'f');
+                rmdir(tempDir, 's');
+                success = true;
+            catch
+                success = false;
+            end
+        end
+
+        function restartApp(app, dlg)
             delete(dlg);
             delete(app);
             clear mrtrix;
