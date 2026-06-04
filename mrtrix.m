@@ -35,6 +35,34 @@ classdef mrtrix < matlab.apps.AppBase
         end
     end
 
+    % Update check
+    methods (Access = private)
+
+        function checkForUpdate(app)
+            [status, result] = system('git rev-parse HEAD 2>/dev/null');
+            if status ~= 0
+                return;
+            end
+            localSHA = strtrim(result);
+
+            try
+                url = 'https://gitee.com/api/v5/repos/luoyun-weixi/mrtrix-matlab/commits/main';
+                opts = weboptions('Timeout', 5);
+                data = webread(url, opts);
+                remoteSHA = data.sha;
+            catch
+                return;
+            end
+
+            if ~strcmp(localSHA, remoteSHA)
+                uialert(app.UIFigure, ...
+                    sprintf('发现新版本！\n\n当前版本(commit): %s\n最新版本(commit): %s\n\n请访问 Gitee 获取更新:\nhttps://gitee.com/luoyun-weixi/mrtrix-matlab', ...
+                        localSHA(1:7), remoteSHA(1:7)), ...
+                    '检查更新', 'Icon', 'warning');
+            end
+        end
+    end
+
     % Component initialization
     methods (Access = private)
 
@@ -125,6 +153,9 @@ classdef mrtrix < matlab.apps.AppBase
 
             % Create UIFigure and components
             createComponents(app)
+
+            % Check for updates
+            try checkForUpdate(app); end
 
             % Register the app with App Designer
             registerApp(app, app.UIFigure)
