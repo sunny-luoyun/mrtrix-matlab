@@ -56,10 +56,41 @@ classdef mrtrix < matlab.apps.AppBase
             end
 
             if ~strcmp(localSHA, remoteSHA)
-                msgbox(sprintf('发现新版本！\n\n当前版本(commit): %s\n最新版本(commit): %s\n\n请访问 Gitee 获取更新:\nhttps://gitee.com/luoyun-weixi/mrtrix-matlab', ...
-                    localSHA(1:7), remoteSHA(1:7)), ...
-                    '检查更新', 'warn');
+                showUpdateDialog(app, localSHA(1:7), remoteSHA(1:7), appDir);
             end
+        end
+
+        function showUpdateDialog(app, localVer, remoteVer, appDir)
+            dlg = uifigure('Name', '检查更新');
+            dlg.Position = [100 100 420 180];
+            dlg.WindowStyle = 'modal';
+            movegui(dlg, 'center');
+
+            msg = sprintf('发现新版本！\n当前版本(commit): %s\n最新版本(commit): %s\n\n请选择操作:', localVer, remoteVer);
+            uilabel(dlg, 'Text', msg, ...
+                'Position', [20 80 380 80], 'FontSize', 12, ...
+                'HorizontalAlignment', 'left');
+
+            uibutton(dlg, 'push', 'Text', '忽略', ...
+                'Position', [90 20 100 30], ...
+                'ButtonPushedFcn', @(btn,~) delete(dlg));
+
+            uibutton(dlg, 'push', 'Text', '更新', ...
+                'Position', [230 20 100 30], ...
+                'ButtonPushedFcn', @(btn,~) doUpdate(app, dlg, appDir));
+        end
+
+        function doUpdate(app, dlg, appDir)
+            [status, result] = system(['git -C "', appDir, '" pull 2>&1']);
+            if status ~= 0
+                uialert(dlg, ['更新失败:\n' result], '错误', 'Icon', 'error');
+                return;
+            end
+
+            delete(dlg);
+            delete(app);
+            clear mrtrix;
+            mrtrix;
         end
     end
 
