@@ -191,14 +191,16 @@ classdef fod < matlab.apps.AppBase
                     end
                 end
 
+                isMulti = strcmp(app.fod_ButtonGroup.SelectedObject.Text, '多组织');
+
                 % 检测是否需要标准化
                 if app.norm_CheckBox.Value
-                    currentPath = normal(workPath, currentPath, subFolder);
+                    currentPath = normal(workPath, currentPath, subFolder, isMulti);
                 end
 
                 % 检测是否需要配准
                 if app.f2m_CheckBox.Value
-                    fodtoMNI(workPath,subFolder,currentPath);
+                    fodtoMNI(workPath, subFolder, currentPath, isMulti);
                 end
 
             end
