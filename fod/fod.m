@@ -53,7 +53,9 @@ classdef fod < matlab.apps.AppBase
         work_Button               matlab.ui.control.Button
         work_EditField            matlab.ui.control.EditField
         Label                     matlab.ui.control.Label
-        sub_TextArea              matlab.ui.control.TextArea
+        sub_ListBox              matlab.ui.control.ListBox
+        sub_ContextMenu          matlab.ui.container.ContextMenu
+        sub_DeleteMenu           matlab.ui.container.Menu
     end
 
     % Callbacks that handle component events
@@ -110,9 +112,13 @@ classdef fod < matlab.apps.AppBase
                 return;
             end
             
-            % 获取所有以 'sub' 开头的文件夹
-            subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'sub' 开头的文件夹
-            subFolderNames = {subFolders.name};          % 提取文件夹名称
+            % 使用列表框中显示的文件夹（右键可删除不需要的项）
+            subFolderNames = app.sub_ListBox.Items;
+            if isempty(subFolderNames)
+                uialert(app.UIFigure, '请先点击"检索"获取被试列表', '提示');
+                app.start_Button.Enable = "on";
+                return;
+            end
         
             % 开始计时
             startTime = tic;
@@ -261,8 +267,23 @@ classdef fod < matlab.apps.AppBase
             subFolders = dir(fullfile(fullPath, 'Sub*')); % 列出所有以 'Sub' 开头的文件夹
             subFolderNames = {subFolders.name};          % 提取文件夹名称
         
-            % 将文件夹名称添加到 sub_TextArea
-            app.sub_TextArea.Value = strjoin(subFolderNames, newline); % 将文件夹名称用换行符连接后显示
+            app.sub_ListBox.Items = subFolderNames;
+            app.sub_ListBox.Value = {};
+        end
+
+        % Context menu selected function: sub_DeleteMenu
+        function sub_DeleteMenuSelected(app, event)
+            selectedItems = app.sub_ListBox.Value;
+            if isempty(selectedItems)
+                return
+            end
+            if ischar(selectedItems)
+                selectedItems = {selectedItems};
+            end
+            currentItems = app.sub_ListBox.Items;
+            keepIdx = ~ismember(currentItems, selectedItems);
+            app.sub_ListBox.Items = currentItems(keepIdx);
+            app.sub_ListBox.Value = {};
         end
 
         % Value changed function: resp_CheckBox
@@ -506,10 +527,16 @@ classdef fod < matlab.apps.AppBase
             app.UIFigure.Position(1) = (screenSize(3) - figureWidth) / 2;
             app.UIFigure.Position(2) = (screenSize(4) - figureHeight) / 2;
 
-            % Create sub_TextArea
-            app.sub_TextArea = uitextarea(app.UIFigure);
-            app.sub_TextArea.Editable = 'off';
-            app.sub_TextArea.Position = [34 217 304 65];
+            % Create sub_ContextMenu
+            app.sub_ContextMenu = uicontextmenu(app.UIFigure);
+            app.sub_DeleteMenu = uimenu(app.sub_ContextMenu, ...
+                'Text', '删除选中文件夹', ...
+                'MenuSelectedFcn', createCallbackFcn(app, @sub_DeleteMenuSelected, true));
+
+            % Create sub_ListBox
+            app.sub_ListBox = uilistbox(app.UIFigure);
+            app.sub_ListBox.ContextMenu = app.sub_ContextMenu;
+            app.sub_ListBox.Position = [34 217 304 65];
 
             % Create Label
             app.Label = uilabel(app.UIFigure);

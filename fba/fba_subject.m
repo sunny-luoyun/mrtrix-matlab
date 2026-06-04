@@ -7,7 +7,9 @@ classdef fba_subject < matlab.apps.AppBase
         work_Button             matlab.ui.control.Button
         prefix_EditField        matlab.ui.control.EditField
         find_Button             matlab.ui.control.Button
-        sub_TextArea            matlab.ui.control.TextArea
+        sub_ListBox          matlab.ui.control.ListBox
+        sub_ContextMenu      matlab.ui.container.ContextMenu
+        sub_DeleteMenu       matlab.ui.container.Menu
 
         csd_ButtonGroup         matlab.ui.container.ButtonGroup
         csd_msmt_Radio          matlab.ui.control.RadioButton
@@ -47,7 +49,6 @@ classdef fba_subject < matlab.apps.AppBase
 
     properties (Access = private)
         workPath char
-        subList cell
     end
 
     methods (Access = private)
@@ -78,8 +79,23 @@ classdef fba_subject < matlab.apps.AppBase
                 subFolders = dir(fullfile(fullPath, 'sub*'));
             end
             names = {subFolders.name};
-            app.sub_TextArea.Value = strjoin(names, newline);
-            app.subList = names;
+            app.sub_ListBox.Items = names;
+            app.sub_ListBox.Value = {};
+        end
+
+        % Context menu selected function: sub_DeleteMenu
+        function sub_DeleteMenuSelected(app, event)
+            selectedItems = app.sub_ListBox.Value;
+            if isempty(selectedItems)
+                return
+            end
+            if ischar(selectedItems)
+                selectedItems = {selectedItems};
+            end
+            currentItems = app.sub_ListBox.Items;
+            keepIdx = ~ismember(currentItems, selectedItems);
+            app.sub_ListBox.Items = currentItems(keepIdx);
+            app.sub_ListBox.Value = {};
         end
 
         function csd_ButtonGroupSelectionChanged(app, event)
@@ -115,7 +131,7 @@ classdef fba_subject < matlab.apps.AppBase
 
             workPath = app.work_EditField.Value;
             prefix = app.prefix_EditField.Value;
-            subList = app.subList;
+            subList = app.sub_ListBox.Items;
             if isempty(workPath) || isempty(subList)
                 uialert(app.UIFigure, '请先选择路径并检索被试', '错误');
                 app.start_Button.Enable = 'on';
@@ -232,8 +248,16 @@ classdef fba_subject < matlab.apps.AppBase
             app.find_Button = uibutton(app.UIFigure, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @find_ButtonPushed, true), ...
                 'Position', [210 558 60 23], 'Text', '检索');
-            app.sub_TextArea = uitextarea(app.UIFigure, ...
-                'Editable', 'off', 'Position', [290 535 200 55]);
+            % Create sub_ContextMenu
+            app.sub_ContextMenu = uicontextmenu(app.UIFigure);
+            app.sub_DeleteMenu = uimenu(app.sub_ContextMenu, ...
+                'Text', '删除选中文件夹', ...
+                'MenuSelectedFcn', createCallbackFcn(app, @sub_DeleteMenuSelected, true));
+
+            % Create sub_ListBox
+            app.sub_ListBox = uilistbox(app.UIFigure, ...
+                'Position', [290 535 200 55]);
+            app.sub_ListBox.ContextMenu = app.sub_ContextMenu;
 
             uilabel(app.UIFigure, 'HorizontalAlignment', 'left', ...
                 'FontWeight', 'bold', 'Position', [10 510 100 22], 'Text', 'CSD 算法');
