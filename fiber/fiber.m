@@ -76,9 +76,8 @@ classdef fiber < matlab.apps.AppBase
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
-            
-        
-            
+            app.start_Button.Enable = 'off';
+            drawnow;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % 获取工作路径和文件夹名称

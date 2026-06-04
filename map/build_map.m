@@ -58,7 +58,7 @@ classdef build_map < matlab.apps.AppBase
 
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
-            % app.start_Button.Enable = "off";
+            app.start_Button.Enable = "off";
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.EditField.Value; % 获取文件夹名称（起始文件夹）
