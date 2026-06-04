@@ -63,7 +63,7 @@ classdef fun < matlab.apps.AppBase
             app.Label = uilabel(app.MRtrixUIFigure);
             app.Label.BackgroundColor = [0.902 0.902 0.902];
             app.Label.HorizontalAlignment = 'center';
-            app.Label.FontName = 'Apple Braille';
+            app.Label.FontName = 'PingFang SC';
             app.Label.FontSize = 24;
             app.Label.Position = [1 380 260 81];
             app.Label.Text = '弥散像处理';

@@ -89,7 +89,7 @@ function buildmap(workPath, subFolder, currentPath,maskpath,sy,zero,len,rare,zb,
         matrix_125x125 = mat_data.NetworkMatrix;  % 假设 mat 文件中矩阵变量名为 NetworkMatrix
     
         % 将索引调整为 MATLAB 的索引（MATLAB 默认是 1-based 索引）
-        node_indices = str2num(brainnet) - 1;  % 假设 brain_mask 是以逗号分隔的字符串
+        node_indices = str2double(strsplit(brainnet, ',')) - 1;
         node_indices = node_indices + 1;  % 转换为 1-based 索引
     
         % 提取子矩阵

@@ -24,7 +24,7 @@ function IMAsort(A, letter, B, C)
 
         % 1) 前缀匹配（不区分大小写）
         pattern = ['^' letter '\d+' '$'];      % 如 ^sub\d+$
-        if ~~regexp(thisSub, pattern, 'once', 'ignorecase')
+        if isempty(regexp(thisSub, pattern, 'once', 'ignorecase'))
             disp('  不符合前缀规则，跳过');
             continue;
         end

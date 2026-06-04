@@ -186,9 +186,7 @@ classdef fod < matlab.apps.AppBase
                 if app.fod_CheckBox.Value
                     if strcmp(app.fod_ButtonGroup.SelectedObject.Text, '单组织')
                         currentPath = csd(currentPath);
-                    else 
-                        strcmp(app.fod_ButtonGroup.SelectedObject.Text, '多组织')
-
+                    else
                         currentPath = msmt(currentPath);
                     end
                 end
