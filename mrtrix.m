@@ -39,7 +39,8 @@ classdef mrtrix < matlab.apps.AppBase
     methods (Access = private)
 
         function checkForUpdate(app)
-            [status, result] = system('git rev-parse HEAD 2>/dev/null');
+            appDir = fileparts(mfilename('fullpath'));
+            [status, result] = system(['git -C "', appDir, '" rev-parse HEAD 2>/dev/null']);
             if status ~= 0
                 return;
             end
