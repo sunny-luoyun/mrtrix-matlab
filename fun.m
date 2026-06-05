@@ -14,32 +14,26 @@ classdef fun < matlab.apps.AppBase
     methods (Access = private)
 
         function pre_ButtonPushed(app, event)
-            addpath('pre')
             run('prepro.m')
         end
 
         function dti_ButtonPushed(app, event)
-            addpath('dti')
             run('dti.m')
         end
 
         function fod_ButtonPushed(app, event)
-            addpath('fod')
             run('fod.m')
         end
 
         function fiber_ButtonPushed(app, event)
-            addpath('fiber')
             run('fiber.m')
         end
 
         function fba_ButtonPushed(app, event)
-            addpath('fba')
             run('fba.m')
         end
 
         function net_ButtonPushed(app, event)
-            addpath('map')
             run('build_map.m')
         end
     end
@@ -105,6 +99,7 @@ classdef fun < matlab.apps.AppBase
     methods (Access = public)
 
         function app = fun
+            setup_path();
             createComponents(app)
             registerApp(app, app.MRtrixUIFigure)
             if nargout == 0

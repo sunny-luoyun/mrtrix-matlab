@@ -25,7 +25,6 @@ classdef mrtrix < matlab.apps.AppBase
 
         % Button pushed function: 统计
         function Button_3Pushed(app, event)
-            addpath('stats');
             run('stats_fun.m');
         end
 
@@ -218,10 +217,12 @@ classdef mrtrix < matlab.apps.AppBase
         % Construct app
         function app = mrtrix
 
+            % 将所有模块文件夹加入 MATLAB 路径
+            setup_path();
+
             % mac系统调用 env.m 文件
-            
             if ismac
-                run('env.m');  % 确保 env.m 文件的路径是正确的
+                run('env.m');
             end
 
             % Create UIFigure and components
