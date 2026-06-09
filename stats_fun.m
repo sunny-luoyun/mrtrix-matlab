@@ -1,11 +1,12 @@
 classdef stats_fun < matlab.apps.AppBase
 
     properties (Access = public)
-        UIFigure       matlab.ui.Figure
-        conn_Button    matlab.ui.control.Button
-        mrcluster_Button    matlab.ui.control.Button
+        UIFigure          matlab.ui.Figure
+        conn_Button       matlab.ui.control.Button
+        mrcluster_Button  matlab.ui.control.Button
         mrstats_Button    matlab.ui.control.Button
-        Label          matlab.ui.control.Label
+        tckstats_Button   matlab.ui.control.Button
+        Label             matlab.ui.control.Label
     end
 
     methods (Access = private)
@@ -21,6 +22,10 @@ classdef stats_fun < matlab.apps.AppBase
         function conn_ButtonPushed(app, event)
             run('connectomestats.m')
         end
+
+        function tckstats_ButtonPushed(app, event)
+            run('tckstats.m')
+        end
     end
 
     methods (Access = private)
@@ -32,7 +37,7 @@ classdef stats_fun < matlab.apps.AppBase
             screen_height = screen_size(4);
 
             figure_width = 261;
-            figure_height = 406;
+            figure_height = 480;
 
             figure_x = (screen_width - figure_width) / 2;
             figure_y = (screen_height - figure_height) / 2;
@@ -46,23 +51,28 @@ classdef stats_fun < matlab.apps.AppBase
             app.Label.HorizontalAlignment = 'center';
             app.Label.FontName = 'PingFang SC';
             app.Label.FontSize = 24;
-            app.Label.Position = [1 332 260 75];
+            app.Label.Position = [1 406 260 75];
             app.Label.Text = '统计分析';
 
             app.mrstats_Button = uibutton(app.UIFigure, 'push');
             app.mrstats_Button.ButtonPushedFcn = createCallbackFcn(app, @mrstats_ButtonPushed, true);
-            app.mrstats_Button.Position = [52 275 158 37];
-            app.mrstats_Button.Text = 'mrstats 数值提取';
+            app.mrstats_Button.Position = [52 348 158 37];
+            app.mrstats_Button.Text = '弥散指标数值提取';
 
             app.mrcluster_Button = uibutton(app.UIFigure, 'push');
             app.mrcluster_Button.ButtonPushedFcn = createCallbackFcn(app, @mrcluster_ButtonPushed, true);
-            app.mrcluster_Button.Position = [52 186 158 37];
-            app.mrcluster_Button.Text = 'mrclusterstats 统计分析';
+            app.mrcluster_Button.Position = [52 261 158 37];
+            app.mrcluster_Button.Text = '弥散指标统计分析';
 
             app.conn_Button = uibutton(app.UIFigure, 'push');
             app.conn_Button.ButtonPushedFcn = createCallbackFcn(app, @conn_ButtonPushed, true);
-            app.conn_Button.Position = [52 100 158 37];
-            app.conn_Button.Text = 'connectomestats 网络统计';
+            app.conn_Button.Position = [52 174 158 37];
+            app.conn_Button.Text = '连接网络统计分析';
+
+            app.tckstats_Button = uibutton(app.UIFigure, 'push');
+            app.tckstats_Button.ButtonPushedFcn = createCallbackFcn(app, @tckstats_ButtonPushed, true);
+            app.tckstats_Button.Position = [52 87 158 37];
+            app.tckstats_Button.Text = '纤维指标数值提取';
 
             app.UIFigure.Visible = 'on';
         end
