@@ -136,6 +136,7 @@ classdef fiber < matlab.apps.AppBase
                     trytime = app.trytimeEditField.Value;
                     fibernum = app.fibernumEditField.Value;
                     roi = app.roi_EditField.Value;
+                    roi = strrep(roi, ' ', ',');
                     mask = app.maskpath_EditField.Value;
                     % 提取 ROIDef
                     ROIDef = [];   % 默认：全脑追踪用不到
