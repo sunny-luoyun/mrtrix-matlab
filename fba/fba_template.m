@@ -20,6 +20,8 @@ classdef fba_template < matlab.apps.AppBase
         reg_niter_EditField     matlab.ui.control.EditField
         btn_register            matlab.ui.control.Button
         progress_Label          matlab.ui.control.Label
+        template_import_Button  matlab.ui.control.Button
+        register_import_Button  matlab.ui.control.Button
     end
 
     properties (Access = private)
@@ -80,6 +82,25 @@ classdef fba_template < matlab.apps.AppBase
             app.sub_listbox.Value = {};
         end
 
+        function template_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.voxel_EditField.Value = p.voxel;
+            app.mode_all_Radio.Value = strcmp(p.mode, 'all');
+            app.mode_subset_Radio.Value = strcmp(p.mode, 'subset');
+        end
+
+        function register_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.reg_scale_EditField.Value = p.scale;
+            app.reg_niter_EditField.Value = p.niter;
+        end
+
         function btn_templatePushed(app, event)
             app.btn_template.Enable = 'off';
             app.progress_Label.Text = '构建群体模板 (耗时较长)...';
@@ -104,6 +125,12 @@ classdef fba_template < matlab.apps.AppBase
                 return
             end
 
+            params = struct();
+            params.voxel = app.voxel_EditField.Value;
+            params.mode = 'all';
+            if app.mode_subset_Radio.Value, params.mode = 'subset'; end
+            save_params('fba', 'fba_template_build', app.workPath, params);
+
             try
                 step7_template(app.workPath, subList, voxelSize);
                 app.progress_Label.Text = '模板构建完成';
@@ -120,6 +147,11 @@ classdef fba_template < matlab.apps.AppBase
             app.btn_register.Enable = 'off';
             app.progress_Label.Text = '配准到模板...';
             drawnow;
+
+            params = struct();
+            params.scale = app.reg_scale_EditField.Value;
+            params.niter = app.reg_niter_EditField.Value;
+            save_params('fba', 'fba_template_register', app.workPath, params);
 
             subList = app.allSubs;
             if isempty(subList)
@@ -181,7 +213,7 @@ classdef fba_template < matlab.apps.AppBase
 
             app.sub_listbox = uilistbox(app.UIFigure, ...
                 'Position', [10 335 180 85], ...
-                'Enable', 'off', 'Max', 100, 'Min', 0);
+                'Enable', 'off');
             app.selectAll_Button = uibutton(app.UIFigure, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @selectAll_ButtonPushed, true), ...
                 'Position', [10 310 80 22], 'Text', '全选', 'Enable', 'off');
@@ -200,6 +232,11 @@ classdef fba_template < matlab.apps.AppBase
                 'Position', [10 232 160 30], 'Text', '构建群体模板', ...
                 'FontSize', 13);
 
+            app.template_import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @template_import_ButtonPushed, true), ...
+                'Position', [175 232 40 30], 'Text', '导入', ...
+                'FontSize', 12);
+
             uilabel(app.UIFigure, 'FontWeight', 'bold', ...
                 'Position', [10 192 120 22], 'Text', '非线性配准参数');
             uilabel(app.UIFigure, 'HorizontalAlignment', 'right', ...
@@ -215,6 +252,11 @@ classdef fba_template < matlab.apps.AppBase
                 'ButtonPushedFcn', createCallbackFcn(app, @btn_registerPushed, true), ...
                 'Position', [10 105 160 30], 'Text', '配准到模板', ...
                 'FontSize', 13);
+
+            app.register_import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @register_import_ButtonPushed, true), ...
+                'Position', [175 105 40 30], 'Text', '导入', ...
+                'FontSize', 12);
 
             app.progress_Label = uilabel(app.UIFigure, ...
                 'Position', [10 50 460 22], ...

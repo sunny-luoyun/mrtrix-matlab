@@ -9,6 +9,7 @@ folders = {
     'map',     % 纤维网络矩阵构建
     'sort',    % 原始数据整理
     'stats',   % 统计分析
+    'counter', % 使用计数
     };
 addpath(rootDir);
 for i = 1:numel(folders)

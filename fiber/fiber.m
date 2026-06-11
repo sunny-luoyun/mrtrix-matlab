@@ -60,6 +60,7 @@ classdef fiber < matlab.apps.AppBase
         sub_DeleteMenu       matlab.ui.container.Menu
         fiberbuild_CheckBox  matlab.ui.control.CheckBox
         ROIConfig
+        import_Button        matlab.ui.control.Button
     end
 
     % Callbacks that handle component events
@@ -75,18 +76,87 @@ classdef fiber < matlab.apps.AppBase
             end
             app.work_EditField.Value = path;
         end
+        function import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.work_EditField.Value = p.workPath;
+            app.start_EditField.Value = p.folder;
+            app.sub_ListBox.Items = strsplit(p.subjects, ', ');
+            app.fiberbuild_CheckBox.Value = p.fiberbuild;
+            app.goin_EditField.Value = p.goin;
+            app.angle_EditField.Value = p.angle;
+            app.mixlength_EditField.Value = p.mixlength;
+            app.maxlength_EditField.Value = p.maxlength;
+            app.FODEditField.Value = p.FOD;
+            app.trytimeEditField.Value = p.trytime;
+            app.fibernumEditField.Value = p.fibernum;
+            app.roi_EditField.Value = p.roi;
+            app.maskpath_EditField.Value = p.mask;
+            app.tckweight_CheckBox.Value = p.tckweight;
+            app.sift_CheckBox.Value = p.sift;
+            app.decr_nunEditField.Value = p.decr_nun;
+            app.tck2niiCheckBox.Value = p.tck2nii;
+            app.smooth_EditField.Value = p.smooth;
+            app.useweight_CheckBox.Value = p.useweight;
+            app.gaosmooth_CheckBox.Value = p.gaosmooth;
+        end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
             app.start_Button.Enable = 'off';
             drawnow;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.start_EditField.Value; % 获取文件夹名称（起始文件夹）
             
             % 拼接完整路径
+            fullPath = fullfile(workPath, folderName);
+            
+            % 检查路径是否存在
+            if ~isfolder(fullPath)
+                uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            % 使用列表框中显示的文件夹（右键可删除不需要的项）
+            subFolderNames = app.sub_ListBox.Items;
+            if isempty(subFolderNames)
+                uialert(app.UIFigure, '请先点击"检索"获取被试列表', '提示');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            % 记录参数
+            params = struct();
+            params.workPath = app.work_EditField.Value;
+            params.folder = app.start_EditField.Value;
+            params.subjects = strjoin(app.sub_ListBox.Items, ', ');
+            params.fiberbuild = app.fiberbuild_CheckBox.Value;
+            params.trackAlgo = app.track_ButtonGroup.SelectedObject.Text;
+            params.mode = app.mode_ButtonGroup.SelectedObject.Text;
+            params.goin = app.goin_EditField.Value;
+            params.angle = app.angle_EditField.Value;
+            params.mixlength = app.mixlength_EditField.Value;
+            params.maxlength = app.maxlength_EditField.Value;
+            params.FOD = app.FODEditField.Value;
+            params.trytime = app.trytimeEditField.Value;
+            params.fibernum = app.fibernumEditField.Value;
+            params.roi = app.roi_EditField.Value;
+            params.mask = app.maskpath_EditField.Value;
+            params.tckweight = app.tckweight_CheckBox.Value;
+            params.sift = app.sift_CheckBox.Value;
+            params.decr_nun = app.decr_nunEditField.Value;
+            params.tck2nii = app.tck2niiCheckBox.Value;
+            params.duibiAlgo = app.duibi_ButtonGroup.SelectedObject.Text;
+            params.smooth = app.smooth_EditField.Value;
+            params.useweight = app.useweight_CheckBox.Value;
+            params.gaosmooth = app.gaosmooth_CheckBox.Value;
+            save_params('fiber', 'fiber', workPath, params);
             fullPath = fullfile(workPath, folderName);
             
             % 检查路径是否存在
@@ -602,6 +672,12 @@ classdef fiber < matlab.apps.AppBase
             app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed, true);
             app.start_Button.Position = [440 21 97 23];
             app.start_Button.Text = '开始处理';
+
+            % Create import_Button
+            app.import_Button = uibutton(app.UIFigure, 'push');
+            app.import_Button.ButtonPushedFcn = createCallbackFcn(app, @import_ButtonPushed, true);
+            app.import_Button.Position = [440 45 40 23];
+            app.import_Button.Text = '导入';
 
             % Create find_Button
             app.find_Button = uibutton(app.UIFigure, 'push');

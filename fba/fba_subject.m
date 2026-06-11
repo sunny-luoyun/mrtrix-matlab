@@ -45,6 +45,7 @@ classdef fba_subject < matlab.apps.AppBase
 
         start_Button            matlab.ui.control.Button
         progress_Label          matlab.ui.control.Label
+        import_Button           matlab.ui.control.Button
     end
 
     properties (Access = private)
@@ -124,6 +125,33 @@ classdef fba_subject < matlab.apps.AppBase
             app.alg_change_EditField.Visible = ~visibleMT;
         end
 
+        function import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.work_EditField.Value = p.workPath;
+            app.prefix_EditField.Value = p.prefix;
+            app.sub_ListBox.Items = strsplit(p.subjects, ', ');
+            app.csd_msmt_Radio.Value = strcmp(p.csd, 'msmt');
+            app.csd_st_Radio.Value = strcmp(p.csd, 'st');
+            app.alg_erode_EditField.Value = p.erode;
+            app.alg_fa_EditField.Value = p.fa;
+            app.alg_sfwm_EditField.Value = p.sfwm;
+            app.alg_gm_EditField.Value = p.gm;
+            app.alg_csf_EditField.Value = p.csf;
+            app.alg_iters_EditField.Value = p.iters;
+            app.alg_sfwm2_EditField.Value = p.sfwm2;
+            app.alg_nextfiber_EditField.Value = p.nextfiber;
+            app.alg_change_EditField.Value = p.change;
+            app.voxel_EditField.Value = p.voxel;
+            app.chk_resp.Value = p.chk_resp;
+            app.chk_respmean.Value = p.chk_respmean;
+            app.chk_upsample.Value = p.chk_upsample;
+            app.chk_csd.Value = p.chk_csd;
+            app.chk_norm.Value = p.chk_norm;
+        end
+
         function start_ButtonPushed(app, event)
             app.start_Button.Enable = 'off';
             app.progress_Label.Text = '处理中...';
@@ -158,6 +186,29 @@ classdef fba_subject < matlab.apps.AppBase
                 params.next_fiber = app.alg_nextfiber_EditField.Value;
                 params.change = app.alg_change_EditField.Value;
             end
+
+            params = struct();
+            params.workPath = app.work_EditField.Value;
+            params.prefix = app.prefix_EditField.Value;
+            params.subjects = strjoin(app.sub_ListBox.Items, ', ');
+            params.csd = 'msmt';
+            if app.csd_st_Radio.Value, params.csd = 'st'; end
+            params.erode = app.alg_erode_EditField.Value;
+            params.fa = app.alg_fa_EditField.Value;
+            params.sfwm = app.alg_sfwm_EditField.Value;
+            params.gm = app.alg_gm_EditField.Value;
+            params.csf = app.alg_csf_EditField.Value;
+            params.iters = app.alg_iters_EditField.Value;
+            params.sfwm2 = app.alg_sfwm2_EditField.Value;
+            params.nextfiber = app.alg_nextfiber_EditField.Value;
+            params.change = app.alg_change_EditField.Value;
+            params.voxel = app.voxel_EditField.Value;
+            params.chk_resp = app.chk_resp.Value;
+            params.chk_respmean = app.chk_respmean.Value;
+            params.chk_upsample = app.chk_upsample.Value;
+            params.chk_csd = app.chk_csd.Value;
+            params.chk_norm = app.chk_norm.Value;
+            save_params('fba', 'fba_subject', workPath, params);
 
             try
                 if app.chk_resp.Value
@@ -331,6 +382,11 @@ classdef fba_subject < matlab.apps.AppBase
                 'ButtonPushedFcn', createCallbackFcn(app, @start_ButtonPushed, true), ...
                 'Position', [200 100 100 30], 'Text', '开始处理', ...
                 'FontSize', 13);
+
+            app.import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @import_ButtonPushed, true), ...
+                'Position', [305 100 40 30], 'Text', '导入', ...
+                'FontSize', 12);
             app.progress_Label = uilabel(app.UIFigure, ...
                 'Position', [10 50 480 22], ...
                 'HorizontalAlignment', 'center', 'Text', '');

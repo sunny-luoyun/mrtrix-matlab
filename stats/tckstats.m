@@ -33,6 +33,7 @@ classdef tckstats < matlab.apps.AppBase
 
         fileList             cell
         fileFullPaths        cell
+        import_Button        matlab.ui.control.Button
     end
 
     methods (Access = private)
@@ -110,7 +111,42 @@ classdef tckstats < matlab.apps.AppBase
             app.tckstats_output_EditField.Value = p;
         end
 
+        function import_ButtonPushed(app, ~)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.tckstats_folder_EditField.Value = p.inDir;
+            app.tckstats_output_EditField.Value = p.outDir;
+            app.tckstats_mean_CheckBox.Value = p.mean;
+            app.tckstats_median_CheckBox.Value = p.median;
+            app.tckstats_std_CheckBox.Value = p.std;
+            app.tckstats_min_CheckBox.Value = p.min;
+            app.tckstats_max_CheckBox.Value = p.max;
+            app.tckstats_count_CheckBox.Value = p.count;
+            app.tckstats_histogram_CheckBox.Value = p.histogram;
+            app.tckstats_histogram_EditField.Value = p.histDir;
+            app.tckstats_dump_CheckBox.Value = p.dump;
+            app.tckstats_dump_EditField.Value = p.dumpDir;
+            app.tckstats_weight_CheckBox.Value = p.weight;
+        end
+
         function start_ButtonPushed(app, ~)
+            params = struct();
+            params.inDir = app.tckstats_folder_EditField.Value;
+            params.outDir = app.tckstats_output_EditField.Value;
+            params.mean = app.tckstats_mean_CheckBox.Value;
+            params.median = app.tckstats_median_CheckBox.Value;
+            params.std = app.tckstats_std_CheckBox.Value;
+            params.min = app.tckstats_min_CheckBox.Value;
+            params.max = app.tckstats_max_CheckBox.Value;
+            params.count = app.tckstats_count_CheckBox.Value;
+            params.histogram = app.tckstats_histogram_CheckBox.Value;
+            params.histDir = app.tckstats_histogram_EditField.Value;
+            params.dump = app.tckstats_dump_CheckBox.Value;
+            params.dumpDir = app.tckstats_dump_EditField.Value;
+            params.weight = app.tckstats_weight_CheckBox.Value;
+            save_params('stats', 'tckstats', app.tckstats_output_EditField.Value, params);
             tckstats_run(app);
         end
 
@@ -349,6 +385,10 @@ classdef tckstats < matlab.apps.AppBase
             app.start_Button = uibutton(app.tckstats_Panel, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @start_ButtonPushed, true), ...
                 'Position', [(fw-200)/2-10 y 200 30], 'Text', '开始处理', 'FontSize', 13);
+
+            app.import_Button = uibutton(app.tckstats_Panel, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @import_ButtonPushed, true), ...
+                'Position', [(fw-200)/2+200 y 40 30], 'Text', '导入', 'FontSize', 12);
 
             y = 128;
             app.tckstats_status_Label = uilabel(app.tckstats_Panel, ...

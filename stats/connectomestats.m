@@ -84,6 +84,7 @@ classdef connectomestats < matlab.apps.AppBase
         start_Button                matlab.ui.control.Button
 
         fileList        cell
+        import_Button    matlab.ui.control.Button
     end
 
     methods (Access = private)
@@ -343,7 +344,58 @@ classdef connectomestats < matlab.apps.AppBase
             app.conn_update_Button.Text = sprintf('已更新 (%d人)', length(allFiles));
         end
 
+        function import_ButtonPushed(app, ~)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.conn_design_TextArea.Value = p.designTxt;
+            app.conn_contrast_TextArea.Value = p.contrastTxt;
+            app.conn_g1_EditField.Value = p.g1;
+            app.conn_g2_EditField.Value = p.g2;
+            app.conn_ext_EditField.Value = p.ext;
+            app.conn_prefix_EditField.Value = p.prefix;
+            app.conn_nshuffles_EditField.Value = p.nshuffles;
+            app.conn_tfce_dh_EditField.Value = p.tfce_dh;
+            app.conn_tfce_e_EditField.Value = p.tfce_e;
+            app.conn_tfce_h_EditField.Value = p.tfce_h;
+            app.conn_nonstationarity_CheckBox.Value = p.nonstationarity;
+            app.conn_notest_CheckBox.Value = p.notest;
+            app.conn_threshold_EditField.Value = p.threshold;
+            app.conn_output_EditField.Value = p.outDir;
+            app.conn_independ_Radio.Value = strcmp(p.design, 'independ');
+            app.conn_paired_Radio.Value = strcmp(p.design, 'paired');
+            app.conn_anova1_Radio.Value = strcmp(p.design, 'anova1');
+            app.conn_anova2_Radio.Value = strcmp(p.design, 'anova2');
+            app.conn_algo_nbs_Radio.Value = strcmp(p.algo, 'nbs');
+            app.conn_algo_tfnbs_Radio.Value = strcmp(p.algo, 'tfnbs');
+            app.conn_algo_none_Radio.Value = strcmp(p.algo, 'none');
+        end
+
         function start_ButtonPushed(app, ~)
+            params = struct();
+            params.designTxt = app.conn_design_TextArea.Value;
+            params.contrastTxt = app.conn_contrast_TextArea.Value;
+            params.g1 = app.conn_g1_EditField.Value;
+            params.g2 = app.conn_g2_EditField.Value;
+            params.ext = app.conn_ext_EditField.Value;
+            params.prefix = app.conn_prefix_EditField.Value;
+            params.nshuffles = app.conn_nshuffles_EditField.Value;
+            params.tfce_dh = app.conn_tfce_dh_EditField.Value;
+            params.tfce_e = app.conn_tfce_e_EditField.Value;
+            params.tfce_h = app.conn_tfce_h_EditField.Value;
+            params.nonstationarity = app.conn_nonstationarity_CheckBox.Value;
+            params.notest = app.conn_notest_CheckBox.Value;
+            params.threshold = app.conn_threshold_EditField.Value;
+            params.outDir = app.conn_output_EditField.Value;
+            params.design = 'independ';
+            if app.conn_paired_Radio.Value, params.design = 'paired'; end
+            if app.conn_anova1_Radio.Value, params.design = 'anova1'; end
+            if app.conn_anova2_Radio.Value, params.design = 'anova2'; end
+            params.algo = 'tfnbs';
+            if app.conn_algo_nbs_Radio.Value, params.algo = 'nbs'; end
+            if app.conn_algo_none_Radio.Value, params.algo = 'none'; end
+            save_params('stats', 'connectomestats', app.conn_output_EditField.Value, params);
             conn_run(app);
         end
 
@@ -897,6 +949,12 @@ classdef connectomestats < matlab.apps.AppBase
             app.start_Button.FontSize = 14;
             app.start_Button.FontWeight = 'bold';
             app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed);
+
+            app.import_Button = uibutton(app.UIFigure, 'push');
+            app.import_Button.Position = [415, 10, 50, 30];
+            app.import_Button.Text = '导入';
+            app.import_Button.FontSize = 12;
+            app.import_Button.ButtonPushedFcn = createCallbackFcn(app, @import_ButtonPushed);
 
             app.UIFigure.Visible = 'on';
         end

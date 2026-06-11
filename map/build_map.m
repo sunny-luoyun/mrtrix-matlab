@@ -34,6 +34,7 @@ classdef build_map < matlab.apps.AppBase
         sub_ListBox          matlab.ui.control.ListBox
         sub_ContextMenu      matlab.ui.container.ContextMenu
         sub_DeleteMenu       matlab.ui.container.Menu
+        import_Button        matlab.ui.control.Button
     end
 
     % Callbacks that handle component events
@@ -58,12 +59,73 @@ classdef build_map < matlab.apps.AppBase
             app.work_EditField.Value = path;
         end
 
+        function import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.work_EditField.Value = p.workPath;
+            app.EditField.Value = p.folder;
+            app.sub_ListBox.Items = strsplit(p.subjects, ', ');
+            app.maskEditField.Value = p.mask;
+            app.symmetric_CheckBox.Value = p.symmetric;
+            app.zero_diagonal_CheckBox.Value = p.zero_diagonal;
+            app.searchlength_EditField.Value = p.searchlength;
+            app.tckweight_CheckBox.Value = p.tckweight;
+            app.output_txt_CheckBox.Value = p.output_txt;
+            app.getbrainnet_CheckBox.Value = p.getbrainnet;
+            app.brainnetnum_EditField.Value = p.brainnetnum;
+        end
+
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
             app.start_Button.Enable = "off";
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.EditField.Value; % 获取文件夹名称（起始文件夹）
+
+            % 拼接完整路径
+            fullPath = fullfile(workPath, folderName);
+            
+            % 检查路径是否存在
+            if ~isfolder(fullPath)
+                uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            if app.getbrainnet_CheckBox.Value
+                if strcmp(app.brainnetnum_EditField.Value, "")
+                    uialert(app.UIFigure, '指定脑区不存在，请检查输入编号是否正确。', '脑区错误');
+                    app.start_Button.Enable = "on";
+                    return;
+                end
+            end
+            
+            % 使用列表框中显示的文件夹（右键可删除不需要的项）
+            subFolderNames = app.sub_ListBox.Items;
+            if isempty(subFolderNames)
+                uialert(app.UIFigure, '请先点击"检索"获取被试列表', '提示');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            % 记录参数
+            params = struct();
+            params.workPath = app.work_EditField.Value;
+            params.folder = app.EditField.Value;
+            params.subjects = strjoin(app.sub_ListBox.Items, ', ');
+            params.mask = app.maskEditField.Value;
+            params.rareAlgo = app.assignrare_ButtonGroup.SelectedObject.Text;
+            params.zbAlgo = app.assignzb_ButtonGroup.SelectedObject.Text;
+            params.symmetric = app.symmetric_CheckBox.Value;
+            params.zero_diagonal = app.zero_diagonal_CheckBox.Value;
+            params.searchlength = app.searchlength_EditField.Value;
+            params.tckweight = app.tckweight_CheckBox.Value;
+            params.output_txt = app.output_txt_CheckBox.Value;
+            params.getbrainnet = app.getbrainnet_CheckBox.Value;
+            params.brainnetnum = app.brainnetnum_EditField.Value;
+            save_params('map', 'build_map', workPath, params);
             
             % 拼接完整路径
             fullPath = fullfile(workPath, folderName);
@@ -300,6 +362,12 @@ classdef build_map < matlab.apps.AppBase
             app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed, true);
             app.start_Button.Position = [374 16 128 23];
             app.start_Button.Text = '开始构建';
+
+            % Create import_Button
+            app.import_Button = uibutton(app.UIFigure, 'push');
+            app.import_Button.ButtonPushedFcn = createCallbackFcn(app, @import_ButtonPushed, true);
+            app.import_Button.Position = [330 16 40 23];
+            app.import_Button.Text = '导入';
 
             % Create find_Button
             app.find_Button = uibutton(app.UIFigure, 'push');

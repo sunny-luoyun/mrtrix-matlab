@@ -26,6 +26,8 @@ classdef sortimg < matlab.apps.AppBase
         Label                  matlab.ui.control.Label
         IMAstart_Button        matlab.ui.control.Button
         work_Button            matlab.ui.control.Button
+        IMA_import_Button      matlab.ui.control.Button
+        NIFTI_import_Button    matlab.ui.control.Button
     end
 
     % Callbacks that handle component events
@@ -36,9 +38,64 @@ classdef sortimg < matlab.apps.AppBase
             
         end
 
+        function IMA_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.work_EditField.Value = p.workPath;
+            app.subfile_EditField.Value = p.letter;
+            app.IMAfile_EditField.Value = p.IMAfile;
+            app.IMAoutput_EditField.Value = p.IMAoutput;
+        end
+
+        function NIFTI_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.T1_EditField.Value = p.T1;
+            app.dwi_EditField.Value = p.dwi;
+            app.NIFTIoutput_EditField.Value = p.NIFTIoutput;
+        end
+
         % Callback function
         function IMAstart_ButtonPushed(app, event)
             
+        end
+
+        % Button pushed function: IMAstart_Button
+        function IMAstart_ButtonPushed2(app, event)
+            A = app.work_EditField.Value;
+            letter = app.subfile_EditField.Value;
+            B = app.IMAfile_EditField.Value;
+            C = app.IMAoutput_EditField.Value;
+            
+            % 记录参数
+            params = struct();
+            params.workPath = A;
+            params.letter = letter;
+            params.IMAfile = B;
+            params.IMAoutput = C;
+            save_params('sort', 'IMA', app.work_EditField.Value, params);
+            
+            IMAsort(A, letter, B, C);
+        end
+
+        % Button pushed function: NIFTIstart_Button
+        function NIFTIstart_ButtonPushed(app, event)
+            T1file = app.T1_EditField.Value;
+            dwifile = app.dwi_EditField.Value;
+            outputpath = app.NIFTIoutput_EditField.Value;
+            
+            % 记录参数
+            params = struct();
+            params.T1 = T1file;
+            params.dwi = dwifile;
+            params.NIFTIoutput = outputpath;
+            save_params('sort', 'NIFTI', app.work_EditField.Value, params);
+            
+            NIFTIsort(T1file, dwifile, outputpath);
         end
 
         % Button pushed function: work_Button
@@ -61,16 +118,6 @@ classdef sortimg < matlab.apps.AppBase
                 return;
             end
             app.IMAoutput_EditField.Value = path;
-        end
-
-        % Button pushed function: IMAstart_Button
-        function IMAstart_ButtonPushed2(app, event)
-            A = app.work_EditField.Value;
-            letter = app.subfile_EditField.Value;
-            B = app.IMAfile_EditField.Value;
-            C = app.IMAoutput_EditField.Value;
-            
-            IMAsort(A, letter, B, C);
         end
 
         % Button pushed function: T1_Button
@@ -106,14 +153,6 @@ classdef sortimg < matlab.apps.AppBase
             app.NIFTIoutput_EditField.Value = path;
         end
 
-        % Button pushed function: NIFTIstart_Button
-        function NIFTIstart_ButtonPushed(app, event)
-            T1file = app.T1_EditField.Value;
-            dwifile = app.dwi_EditField.Value;
-            outputpath = app.NIFTIoutput_EditField.Value;
-            
-            NIFTIsort(T1file, dwifile, outputpath);
-        end
     end
 
     % Component initialization
@@ -145,6 +184,12 @@ classdef sortimg < matlab.apps.AppBase
             app.IMAstart_Button.ButtonPushedFcn = createCallbackFcn(app, @IMAstart_ButtonPushed2, true);
             app.IMAstart_Button.Position = [240 211 128 23];
             app.IMAstart_Button.Text = '开始提取';
+
+            % Create IMA_import_Button
+            app.IMA_import_Button = uibutton(app.UIFigure, 'push');
+            app.IMA_import_Button.ButtonPushedFcn = createCallbackFcn(app, @IMA_import_ButtonPushed, true);
+            app.IMA_import_Button.Position = [180 211 40 23];
+            app.IMA_import_Button.Text = '导入';
 
             % Create Label
             app.Label = uilabel(app.UIFigure);
@@ -247,6 +292,12 @@ classdef sortimg < matlab.apps.AppBase
             app.NIFTIstart_Button.ButtonPushedFcn = createCallbackFcn(app, @NIFTIstart_ButtonPushed, true);
             app.NIFTIstart_Button.Position = [242 27 128 23];
             app.NIFTIstart_Button.Text = '开始整理';
+
+            % Create NIFTI_import_Button
+            app.NIFTI_import_Button = uibutton(app.UIFigure, 'push');
+            app.NIFTI_import_Button.ButtonPushedFcn = createCallbackFcn(app, @NIFTI_import_ButtonPushed, true);
+            app.NIFTI_import_Button.Position = [180 27 40 23];
+            app.NIFTI_import_Button.Text = '导入';
 
             % Create NIFTIoutput_Button
             app.NIFTIoutput_Button = uibutton(app.UIFigure, 'push');

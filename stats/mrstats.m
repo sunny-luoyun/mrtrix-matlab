@@ -40,6 +40,7 @@ classdef mrstats < matlab.apps.AppBase
 
         fileList        cell
         currentMaskPath char
+        import_Button    matlab.ui.control.Button
     end
 
     methods (Access = private)
@@ -172,7 +173,56 @@ classdef mrstats < matlab.apps.AppBase
             app.mrstats_output_EditField.Value = p;
         end
 
+        function import_ButtonPushed(app, ~)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.mrstats_folder_EditField.Value = p.inDir;
+            app.mrstats_output_EditField.Value = p.outDir;
+            app.mrstats_mean_CheckBox.Value = p.mean;
+            app.mrstats_median_CheckBox.Value = p.median;
+            app.mrstats_std_CheckBox.Value = p.std;
+            app.mrstats_min_CheckBox.Value = p.min;
+            app.mrstats_max_CheckBox.Value = p.max;
+            app.mrstats_count_CheckBox.Value = p.count;
+            app.mrstats_ignorezero_CheckBox.Value = p.ignorezero;
+            app.mrstats_allvolumes_CheckBox.Value = p.allvolumes;
+            app.mrstats_wholeBrain_Radio.Value = strcmp(p.scope, 'wholeBrain');
+            app.mrstats_roi_Radio.Value = strcmp(p.scope, 'roi');
+            app.mrstats_maskFile_Radio.Value = strcmp(p.roiType, 'maskFile');
+            app.mrstats_sphere_Radio.Value = strcmp(p.roiType, 'sphere');
+            app.mrstats_maskFile_EditField.Value = p.maskFile;
+            app.mrstats_sphere_x_EditField.Value = p.sphere_x;
+            app.mrstats_sphere_y_EditField.Value = p.sphere_y;
+            app.mrstats_sphere_z_EditField.Value = p.sphere_z;
+            app.mrstats_sphere_r_EditField.Value = p.sphere_r;
+            app.mrstats_ref_EditField.Value = p.ref;
+        end
+
         function start_ButtonPushed(app, ~)
+            params = struct();
+            params.inDir = app.mrstats_folder_EditField.Value;
+            params.outDir = app.mrstats_output_EditField.Value;
+            params.mean = app.mrstats_mean_CheckBox.Value;
+            params.median = app.mrstats_median_CheckBox.Value;
+            params.std = app.mrstats_std_CheckBox.Value;
+            params.min = app.mrstats_min_CheckBox.Value;
+            params.max = app.mrstats_max_CheckBox.Value;
+            params.count = app.mrstats_count_CheckBox.Value;
+            params.ignorezero = app.mrstats_ignorezero_CheckBox.Value;
+            params.allvolumes = app.mrstats_allvolumes_CheckBox.Value;
+            params.scope = 'wholeBrain';
+            if app.mrstats_roi_Radio.Value, params.scope = 'roi'; end
+            params.roiType = 'maskFile';
+            if app.mrstats_sphere_Radio.Value, params.roiType = 'sphere'; end
+            params.maskFile = app.mrstats_maskFile_EditField.Value;
+            params.sphere_x = app.mrstats_sphere_x_EditField.Value;
+            params.sphere_y = app.mrstats_sphere_y_EditField.Value;
+            params.sphere_z = app.mrstats_sphere_z_EditField.Value;
+            params.sphere_r = app.mrstats_sphere_r_EditField.Value;
+            params.ref = app.mrstats_ref_EditField.Value;
+            save_params('stats', 'mrstats', app.mrstats_output_EditField.Value, params);
             mrstats_run(app);
         end
 
@@ -481,6 +531,12 @@ classdef mrstats < matlab.apps.AppBase
             app.start_Button.FontSize = 14;
             app.start_Button.FontWeight = 'bold';
             app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed);
+
+            app.import_Button = uibutton(app.UIFigure, 'push');
+            app.import_Button.Position = [415, 10, 50, 30];
+            app.import_Button.Text = '导入';
+            app.import_Button.FontSize = 12;
+            app.import_Button.ButtonPushedFcn = createCallbackFcn(app, @import_ButtonPushed);
 
             app.UIFigure.Visible = 'on';
         end

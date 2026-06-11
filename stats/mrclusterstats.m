@@ -85,6 +85,7 @@ classdef mrclusterstats < matlab.apps.AppBase
         start_Button                    matlab.ui.control.Button
 
         fileList        cell
+        import_Button    matlab.ui.control.Button
     end
 
     methods (Access = private)
@@ -363,7 +364,60 @@ classdef mrclusterstats < matlab.apps.AppBase
             app.mrcluster_update_Button.Text = sprintf('已更新 (%d人)', length(allFiles));
         end
 
+        function import_ButtonPushed(app, ~)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.mrcluster_design_TextArea.Value = p.designTxt;
+            app.mrcluster_contrast_TextArea.Value = p.contrastTxt;
+            app.mrcluster_g1_EditField.Value = p.g1;
+            app.mrcluster_g2_EditField.Value = p.g2;
+            app.mrcluster_ext_EditField.Value = p.ext;
+            app.mrcluster_mask_EditField.Value = p.mask;
+            app.mrcluster_prefix_EditField.Value = p.prefix;
+            app.mrcluster_nshuffles_EditField.Value = p.nshuffles;
+            app.mrcluster_tfce_dh_EditField.Value = p.tfce_dh;
+            app.mrcluster_tfce_e_EditField.Value = p.tfce_e;
+            app.mrcluster_tfce_h_EditField.Value = p.tfce_h;
+            app.mrcluster_nonstationarity_CheckBox.Value = p.nonstationarity;
+            app.mrcluster_notest_CheckBox.Value = p.notest;
+            app.mrcluster_cluster_CheckBox.Value = p.cluster;
+            app.mrcluster_threshold_EditField.Value = p.threshold;
+            app.mrcluster_output_EditField.Value = p.outDir;
+            app.mrcluster_independ_Radio.Value = strcmp(p.design, 'independ');
+            app.mrcluster_paired_Radio.Value = strcmp(p.design, 'paired');
+            app.mrcluster_anova1_Radio.Value = strcmp(p.design, 'anova1');
+            app.mrcluster_anova2_Radio.Value = strcmp(p.design, 'anova2');
+            app.mrcluster_connect6_Radio.Value = strcmp(p.connect, '6');
+            app.mrcluster_connect26_Radio.Value = strcmp(p.connect, '26');
+        end
+
         function start_ButtonPushed(app, ~)
+            params = struct();
+            params.designTxt = app.mrcluster_design_TextArea.Value;
+            params.contrastTxt = app.mrcluster_contrast_TextArea.Value;
+            params.g1 = app.mrcluster_g1_EditField.Value;
+            params.g2 = app.mrcluster_g2_EditField.Value;
+            params.ext = app.mrcluster_ext_EditField.Value;
+            params.mask = app.mrcluster_mask_EditField.Value;
+            params.prefix = app.mrcluster_prefix_EditField.Value;
+            params.nshuffles = app.mrcluster_nshuffles_EditField.Value;
+            params.tfce_dh = app.mrcluster_tfce_dh_EditField.Value;
+            params.tfce_e = app.mrcluster_tfce_e_EditField.Value;
+            params.tfce_h = app.mrcluster_tfce_h_EditField.Value;
+            params.nonstationarity = app.mrcluster_nonstationarity_CheckBox.Value;
+            params.notest = app.mrcluster_notest_CheckBox.Value;
+            params.cluster = app.mrcluster_cluster_CheckBox.Value;
+            params.threshold = app.mrcluster_threshold_EditField.Value;
+            params.outDir = app.mrcluster_output_EditField.Value;
+            params.design = 'independ';
+            if app.mrcluster_paired_Radio.Value, params.design = 'paired'; end
+            if app.mrcluster_anova1_Radio.Value, params.design = 'anova1'; end
+            if app.mrcluster_anova2_Radio.Value, params.design = 'anova2'; end
+            params.connect = '6';
+            if app.mrcluster_connect26_Radio.Value, params.connect = '26'; end
+            save_params('stats', 'mrclusterstats', app.mrcluster_output_EditField.Value, params);
             mrcluster_run(app);
         end
 
@@ -917,6 +971,12 @@ classdef mrclusterstats < matlab.apps.AppBase
             app.start_Button.FontSize = 14;
             app.start_Button.FontWeight = 'bold';
             app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed);
+
+            app.import_Button = uibutton(app.UIFigure, 'push');
+            app.import_Button.Position = [415, 10, 50, 30];
+            app.import_Button.Text = '导入';
+            app.import_Button.FontSize = 12;
+            app.import_Button.ButtonPushedFcn = createCallbackFcn(app, @import_ButtonPushed);
 
             app.UIFigure.Visible = 'on';
         end

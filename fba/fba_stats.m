@@ -27,6 +27,7 @@ classdef fba_stats < matlab.apps.AppBase
         btn_stats               matlab.ui.control.Button
         btn_view                matlab.ui.control.Button
         progress_Label          matlab.ui.control.Label
+        stats_import_Button     matlab.ui.control.Button
     end
 
     properties (Access = private)
@@ -118,10 +119,46 @@ classdef fba_stats < matlab.apps.AppBase
             app.preview_TextArea.Value = preview;
         end
 
+        function stats_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.groupNum_DropDown.Value = p.groupNum;
+            app.statType_DropDown.Value = p.statType;
+            app.g1_key_EditField.Value = p.g1key;
+            app.g2_key_EditField.Value = p.g2key;
+            app.chk_fd.Value = p.fd;
+            app.chk_logfc.Value = p.logfc;
+            app.chk_fdc.Value = p.fdc;
+            app.nshuffles_EditField.Value = p.nshuffles;
+            app.cfe_h_EditField.Value = p.cfe_h;
+            app.cfe_e_EditField.Value = p.cfe_e;
+            app.cfe_c_EditField.Value = p.cfe_c;
+            app.design_TextArea.Value = p.designTxt;
+            app.contrast_TextArea.Value = p.contrastTxt;
+        end
+
         function btn_statsPushed(app, event)
             app.btn_stats.Enable = 'off';
             app.progress_Label.Text = '运行 CFE 统计分析...';
             drawnow;
+
+            params = struct();
+            params.groupNum = app.groupNum_DropDown.Value;
+            params.statType = app.statType_DropDown.Value;
+            params.g1key = app.g1_key_EditField.Value;
+            params.g2key = app.g2_key_EditField.Value;
+            params.fd = app.chk_fd.Value;
+            params.logfc = app.chk_logfc.Value;
+            params.fdc = app.chk_fdc.Value;
+            params.nshuffles = app.nshuffles_EditField.Value;
+            params.cfe_h = app.cfe_h_EditField.Value;
+            params.cfe_e = app.cfe_e_EditField.Value;
+            params.cfe_c = app.cfe_c_EditField.Value;
+            params.designTxt = app.design_TextArea.Value;
+            params.contrastTxt = app.contrast_TextArea.Value;
+            save_params('fba', 'fba_stats', app.workPath, params);
 
             designTxt = app.design_TextArea.Value;
             contrastTxt = app.contrast_TextArea.Value;
@@ -248,9 +285,15 @@ classdef fba_stats < matlab.apps.AppBase
                 'ButtonPushedFcn', createCallbackFcn(app, @btn_statsPushed, true), ...
                 'Position', [100 120 120 30], 'Text', '运行 CFE 统计', ...
                 'FontSize', 13);
+
+            app.stats_import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @stats_import_ButtonPushed, true), ...
+                'Position', [225 120 40 30], 'Text', '导入', ...
+                'FontSize', 12);
+
             app.btn_view = uibutton(app.UIFigure, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @btn_viewPushed, true), ...
-                'Position', [240 120 120 30], 'Text', '查看结果', ...
+                'Position', [275 120 120 30], 'Text', '查看结果', ...
                 'FontSize', 13);
 
             app.progress_Label = uilabel(app.UIFigure, ...

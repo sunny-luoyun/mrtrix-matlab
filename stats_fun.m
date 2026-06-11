@@ -12,18 +12,22 @@ classdef stats_fun < matlab.apps.AppBase
     methods (Access = private)
 
         function mrstats_ButtonPushed(app, event)
+            record_usage('stats', 'mrstats');
             run('mrstats.m')
         end
 
         function mrcluster_ButtonPushed(app, event)
+            record_usage('stats', 'mrclusterstats');
             run('mrclusterstats.m')
         end
 
         function conn_ButtonPushed(app, event)
+            record_usage('stats', 'connectomestats');
             run('connectomestats.m')
         end
 
         function tckstats_ButtonPushed(app, event)
+            record_usage('stats', 'tckstats');
             run('tckstats.m')
         end
     end

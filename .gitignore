@@ -2,3 +2,5 @@
 app1.mlapp
 *.mlapp
 AGENTS.md
+.idea/
+counter/usage.mat

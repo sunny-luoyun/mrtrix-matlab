@@ -22,6 +22,7 @@ classdef prepro < matlab.apps.AppBase
         sub_ListBox          matlab.ui.control.ListBox
         sub_ContextMenu      matlab.ui.container.ContextMenu
         sub_DeleteMenu       matlab.ui.container.Menu
+        import_Button        matlab.ui.control.Button
     end
 
     % Callbacks that handle component events
@@ -40,6 +41,25 @@ classdef prepro < matlab.apps.AppBase
 
 
         % Button pushed function: work_Button
+        function import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.work_EditField.Value = p.workPath;
+            app.EditField.Value = p.folder;
+            app.sub_ListBox.Items = strsplit(p.subjects, ', ');
+            app.format_CheckBox.Value = p.format;
+            app.denoise_CheckBox.Value = p.denoise;
+            app.Gibbs_CheckBox.Value = p.gibbs;
+            app.headmove_CheckBox.Value = p.headmove;
+            app.bias_CheckBox.Value = p.bias;
+            app.T1corg_CheckBox.Value = p.T1corg;
+            app.dwi_to_MNI_CheckBox.Value = p.dwi_to_MNI;
+            app.T1_to_MNI_CheckBox.Value = p.T1_to_MNI;
+            app.mask_CheckBox.Value = p.mask;
+        end
+
         function start_ButtonPushed(app, event)
             
             app.start_Button.Enable = 'off';
@@ -47,6 +67,40 @@ classdef prepro < matlab.apps.AppBase
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.EditField.Value;    % 获取文件夹名称（起始文件夹）
+
+            % 拼接完整路径
+            fullPath = fullfile(workPath, folderName);
+            
+            % 检查路径是否存在
+            if ~isfolder(fullPath)
+                uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            % 使用列表框中显示的文件夹（右键可删除不需要的项）
+            subFolderNames = app.sub_ListBox.Items;
+            if isempty(subFolderNames)
+                uialert(app.UIFigure, '请先点击"检索"获取被试列表', '提示');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            % 记录参数
+            params = struct();
+            params.workPath = app.work_EditField.Value;
+            params.folder = app.EditField.Value;
+            params.subjects = strjoin(app.sub_ListBox.Items, ', ');
+            params.format = app.format_CheckBox.Value;
+            params.denoise = app.denoise_CheckBox.Value;
+            params.gibbs = app.Gibbs_CheckBox.Value;
+            params.headmove = app.headmove_CheckBox.Value;
+            params.bias = app.bias_CheckBox.Value;
+            params.T1corg = app.T1corg_CheckBox.Value;
+            params.dwi_to_MNI = app.dwi_to_MNI_CheckBox.Value;
+            params.T1_to_MNI = app.T1_to_MNI_CheckBox.Value;
+            params.mask = app.mask_CheckBox.Value;
+            save_params('pre', 'prepro', workPath, params);
             
             % 拼接完整路径
             fullPath = fullfile(workPath, folderName);
@@ -356,8 +410,14 @@ classdef prepro < matlab.apps.AppBase
             % Create start_Button
             app.start_Button = uibutton(app.UIFigure, 'push');
             app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed, true);
-            app.start_Button.Position = [225 20 128 23];
+            app.start_Button.Position = [225 10 128 23];
             app.start_Button.Text = '开始处理';
+
+            % Create import_Button
+            app.import_Button = uibutton(app.UIFigure, 'push');
+            app.import_Button.ButtonPushedFcn = createCallbackFcn(app, @import_ButtonPushed, true);
+            app.import_Button.Position = [225 35 40 23];
+            app.import_Button.Text = '导入';
 
             % Create find_Button
             app.find_Button = uibutton(app.UIFigure, 'push');

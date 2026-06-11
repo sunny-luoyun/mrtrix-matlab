@@ -56,6 +56,7 @@ classdef fod < matlab.apps.AppBase
         sub_ListBox              matlab.ui.control.ListBox
         sub_ContextMenu          matlab.ui.container.ContextMenu
         sub_DeleteMenu           matlab.ui.container.Menu
+        import_Button            matlab.ui.control.Button
     end
 
     % Callbacks that handle component events
@@ -95,12 +96,84 @@ classdef fod < matlab.apps.AppBase
             app.work_EditField.Value = path;
         end
 
+        function import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.work_EditField.Value = p.workPath;
+            app.start_EditField.Value = p.folder;
+            app.sub_ListBox.Items = strsplit(p.subjects, ', ');
+            app.resp_CheckBox.Value = p.resp;
+            app.maskedit_EditField.Value = p.maskedit;
+            app.wm_fa_EditField.Value = p.wm_fa;
+            app.wmvoxel_EditField.Value = p.wmvoxel;
+            app.gmvoxel_EditField.Value = p.gmvoxel;
+            app.csfvoxel_EditField.Value = p.csfvoxel;
+            app.maxFA_EditField.Value = p.maxFA;
+            app.voxel_EditField.Value = p.voxel;
+            app.FArange_EditField.Value = p.FArange;
+            app.fsr_EditField.Value = p.fsr;
+            app.intrate_num_EditField.Value = p.intrate_num;
+            app.intrate_change_EditField.Value = p.intrate_change;
+            app.fiber_num_EditField.Value = p.fiber_num;
+            app.next_fiber_num_EditField.Value = p.next_fiber_num;
+            app.fod_CheckBox.Value = p.fod;
+            app.norm_CheckBox.Value = p.norm;
+            app.f2m_CheckBox.Value = p.f2m;
+        end
+
         % Button pushed function: start_Button
         function start_ButtonPushed(app, event)
             app.start_Button.Enable = "off";
             % 获取工作路径和文件夹名称
             workPath = app.work_EditField.Value; % 获取工作路径
             folderName = app.start_EditField.Value;    % 获取文件夹名称（起始文件夹）
+
+            % 拼接完整路径
+            fullPath = fullfile(workPath, folderName);
+            
+            % 检查路径是否存在
+            if ~isfolder(fullPath)
+                uialert(app.UIFigure, '指定的路径不存在，请检查输入路径是否正确。', '路径错误');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            % 使用列表框中显示的文件夹（右键可删除不需要的项）
+            subFolderNames = app.sub_ListBox.Items;
+            if isempty(subFolderNames)
+                uialert(app.UIFigure, '请先点击"检索"获取被试列表', '提示');
+                app.start_Button.Enable = "on";
+                return;
+            end
+            
+            % 记录参数
+            params = struct();
+            params.workPath = app.work_EditField.Value;
+            params.folder = app.start_EditField.Value;
+            params.subjects = strjoin(app.sub_ListBox.Items, ', ');
+            params.resp = app.resp_CheckBox.Value;
+            params.respAlgo = app.resp_ButtonGroup.SelectedObject.Text;
+            params.maskedit = app.maskedit_EditField.Value;
+            params.wm_fa = app.wm_fa_EditField.Value;
+            params.wmvoxel = app.wmvoxel_EditField.Value;
+            params.gmvoxel = app.gmvoxel_EditField.Value;
+            params.csfvoxel = app.csfvoxel_EditField.Value;
+            params.maxFA = app.maxFA_EditField.Value;
+            params.voxel = app.voxel_EditField.Value;
+            params.wmvoxelAlgo = app.wmvoxel_ButtonGroup.SelectedObject.Text;
+            params.FArange = app.FArange_EditField.Value;
+            params.fsr = app.fsr_EditField.Value;
+            params.intrate_num = app.intrate_num_EditField.Value;
+            params.intrate_change = app.intrate_change_EditField.Value;
+            params.fiber_num = app.fiber_num_EditField.Value;
+            params.next_fiber_num = app.next_fiber_num_EditField.Value;
+            params.fod = app.fod_CheckBox.Value;
+            params.fodAlgo = app.fod_ButtonGroup.SelectedObject.Text;
+            params.norm = app.norm_CheckBox.Value;
+            params.f2m = app.f2m_CheckBox.Value;
+            save_params('fod', 'fod', workPath, params);
             
             % 拼接完整路径
             fullPath = fullfile(workPath, folderName);
@@ -148,7 +221,7 @@ classdef fod < matlab.apps.AppBase
                         maskedit = app.maskedit_EditField.Value;
                         maxfa = app.maxFA_EditField.Value;
                         
-                        currentPath = fa(workPath, subFolder, currentPath,maskedit,maxfa); % 调用fa
+                        currentPath = fod_fa(workPath, subFolder, currentPath,maskedit,maxfa); % 调用fa
 
                     elseif strcmp(app.resp_ButtonGroup.SelectedObject.Text, 'msmt_5tt')
                         if strcmp(app.wmvoxel_ButtonGroup.SelectedObject.Text, 'tournier')
@@ -578,6 +651,12 @@ classdef fod < matlab.apps.AppBase
             app.start_Button.ButtonPushedFcn = createCallbackFcn(app, @start_ButtonPushed, true);
             app.start_Button.Position = [503 13 67 23];
             app.start_Button.Text = '开始处理';
+
+            % Create import_Button
+            app.import_Button = uibutton(app.UIFigure, 'push');
+            app.import_Button.ButtonPushedFcn = createCallbackFcn(app, @import_ButtonPushed, true);
+            app.import_Button.Position = [503 40 40 23];
+            app.import_Button.Text = '导入';
 
             % Create find_Button
             app.find_Button = uibutton(app.UIFigure, 'push');

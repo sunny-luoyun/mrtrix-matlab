@@ -27,7 +27,11 @@ classdef fba_fixel < matlab.apps.AppBase
         chk_logfc               matlab.ui.control.CheckBox
         chk_fdc                 matlab.ui.control.CheckBox
 
-        progress_Label          matlab.ui.control.Label
+        progress_Label              matlab.ui.control.Label
+        fixel_mask_import_Button    matlab.ui.control.Button
+        fd_fc_import_Button         matlab.ui.control.Button
+        tck_import_Button           matlab.ui.control.Button
+        smooth_import_Button        matlab.ui.control.Button
     end
 
     properties (Access = private)
@@ -59,10 +63,56 @@ classdef fba_fixel < matlab.apps.AppBase
             subList = names;
         end
 
+        function fixel_mask_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.fmls_EditField.Value = p.fmls;
+            app.tck_cutoff_EditField.Value = p.tck_cutoff;
+        end
+
+        function fd_fc_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.fmls_EditField.Value = p.fmls;
+        end
+
+        function tck_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.tck_algo_DropDown.Value = p.algo;
+            app.tck_angle_EditField.Value = p.angle;
+            app.tck_maxlen_EditField.Value = p.maxlen;
+            app.tck_minlen_EditField.Value = p.minlen;
+            app.tck_power_EditField.Value = p.power;
+            app.tck_select_EditField.Value = p.select;
+            app.tck_cutoff_EditField.Value = p.cutoff;
+            app.tck_sift_EditField.Value = p.sift;
+        end
+
+        function smooth_import_ButtonPushed(app, event)
+            [file, path] = uigetfile('*.mat', '选择参数文件');
+            if isequal(file, 0), return; end
+            data = load_params(fullfile(path, file));
+            p = data.params;
+            app.chk_fd.Value = p.fd;
+            app.chk_logfc.Value = p.logfc;
+            app.chk_fdc.Value = p.fdc;
+        end
+
         function btn_fixel_maskPushed(app, event)
             app.btn_fixel_mask.Enable = 'off';
             app.progress_Label.Text = '生成 fixel mask...';
             drawnow;
+            params = struct();
+            params.fmls = app.fmls_EditField.Value;
+            params.tck_cutoff = app.tck_cutoff_EditField.Value;
+            save_params('fba', 'fba_fixel_mask', app.workPath, params);
             try
                 step10_fixel_mask(app.workPath, app.fmls_EditField.Value);
                 app.progress_Label.Text = 'fixel mask 生成完成';
@@ -77,6 +127,9 @@ classdef fba_fixel < matlab.apps.AppBase
             app.btn_fd_fc.Enable = 'off';
             app.progress_Label.Text = '计算 FD/FC/FDC...';
             drawnow;
+            params = struct();
+            params.fmls = app.fmls_EditField.Value;
+            save_params('fba', 'fba_fixel_fdfc', app.workPath, params);
             subList = getSubList(app);
             try
                 step11_warp_fod(app.workPath, subList);
@@ -107,6 +160,16 @@ classdef fba_fixel < matlab.apps.AppBase
             app.btn_tck.Enable = 'off';
             app.progress_Label.Text = '模板全脑追踪...';
             drawnow;
+            params = struct();
+            params.algo = app.tck_algo_DropDown.Value;
+            params.angle = app.tck_angle_EditField.Value;
+            params.maxlen = app.tck_maxlen_EditField.Value;
+            params.minlen = app.tck_minlen_EditField.Value;
+            params.power = app.tck_power_EditField.Value;
+            params.select = app.tck_select_EditField.Value;
+            params.cutoff = app.tck_cutoff_EditField.Value;
+            params.sift = app.tck_sift_EditField.Value;
+            save_params('fba', 'fba_fixel_tck', app.workPath, params);
             tckParams = struct();
             tckParams.algorithm = app.tck_algo_DropDown.Value;
             tckParams.angle = app.tck_angle_EditField.Value;
@@ -133,6 +196,11 @@ classdef fba_fixel < matlab.apps.AppBase
             app.btn_smooth.Enable = 'off';
             app.progress_Label.Text = '平滑指标...';
             drawnow;
+            params = struct();
+            params.fd = app.chk_fd.Value;
+            params.logfc = app.chk_logfc.Value;
+            params.fdc = app.chk_fdc.Value;
+            save_params('fba', 'fba_fixel_smooth', app.workPath, params);
             metrics = {};
             if app.chk_fd.Value
                 metrics{end+1} = 'fd';
@@ -192,10 +260,18 @@ classdef fba_fixel < matlab.apps.AppBase
                 'ButtonPushedFcn', createCallbackFcn(app, @btn_fixel_maskPushed, true), ...
                 'Position', [10 492 140 28], 'Text', '生成 fixel mask', ...
                 'FontSize', 12);
+            app.fixel_mask_import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @fixel_mask_import_ButtonPushed, true), ...
+                'Position', [155 492 30 28], 'Text', '导入', ...
+                'FontSize', 11);
             app.btn_fd_fc = uibutton(app.UIFigure, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @btn_fd_fcPushed, true), ...
-                'Position', [170 492 160 28], 'Text', 'FD → FC → FDC', ...
+                'Position', [195 492 160 28], 'Text', 'FD → FC → FDC', ...
                 'FontSize', 12);
+            app.fd_fc_import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @fd_fc_import_ButtonPushed, true), ...
+                'Position', [360 492 30 28], 'Text', '导入', ...
+                'FontSize', 11);
 
             uipanel(app.UIFigure, 'Title', '模板追踪参数', ...
                 'Position', [10 295 460 170]);
@@ -229,6 +305,11 @@ classdef fba_fixel < matlab.apps.AppBase
                 'Position', [10 258 180 28], 'Text', '全脑追踪 + SIFT + 连接矩阵', ...
                 'FontSize', 12);
 
+            app.tck_import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @tck_import_ButtonPushed, true), ...
+                'Position', [195 258 30 28], 'Text', '导入', ...
+                'FontSize', 11);
+
             uipanel(app.UIFigure, 'Title', '平滑指标', ...
                 'Position', [10 183 460 50]);
             app.chk_fd = uicheckbox(app.UIFigure, ...
@@ -242,6 +323,11 @@ classdef fba_fixel < matlab.apps.AppBase
                 'ButtonPushedFcn', createCallbackFcn(app, @btn_smoothPushed, true), ...
                 'Position', [10 145 80 28], 'Text', '平滑', ...
                 'FontSize', 12);
+
+            app.smooth_import_Button = uibutton(app.UIFigure, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @smooth_import_ButtonPushed, true), ...
+                'Position', [95 145 30 28], 'Text', '导入', ...
+                'FontSize', 11);
 
             app.progress_Label = uilabel(app.UIFigure, ...
                 'Position', [10 80 480 22], ...

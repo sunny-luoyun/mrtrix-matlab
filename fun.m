@@ -14,26 +14,32 @@ classdef fun < matlab.apps.AppBase
     methods (Access = private)
 
         function pre_ButtonPushed(app, event)
+            record_usage('pre', 'prepro');
             run('prepro.m')
         end
 
         function dti_ButtonPushed(app, event)
+            record_usage('dti', 'dti');
             run('dti.m')
         end
 
         function fod_ButtonPushed(app, event)
+            record_usage('fod', 'fod');
             run('fod.m')
         end
 
         function fiber_ButtonPushed(app, event)
+            record_usage('fiber', 'fiber');
             run('fiber.m')
         end
 
         function fba_ButtonPushed(app, event)
+            record_usage('fba', 'fba');
             run('fba.m')
         end
 
         function net_ButtonPushed(app, event)
+            record_usage('map', 'build_map');
             run('build_map.m')
         end
     end

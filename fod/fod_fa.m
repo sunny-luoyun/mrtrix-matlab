@@ -1,4 +1,4 @@
-function newpath = fa(workPath, subFolder, currentPath,maskedit,maxfa)
+function newpath = fod_fa(workPath, subFolder, currentPath,maskedit,maxfa)
     
     outputpath = fullfile(workPath,'fod_f', subFolder);
     mkdir(outputpath)
