@@ -253,8 +253,8 @@ classdef fba_subject < matlab.apps.AppBase
                 end
 
                 app.progress_Label.Text = '个体处理完成';
-                uialert(app.UIFigure, '个体水平处理完成！' + newline + ...
-                    '结果保存在 fba/subjects/ 目录', '完成提示');
+                msg = sprintf('个体水平处理完成！\n结果保存在 fba/subjects/ 目录');
+                uialert(app.UIFigure, msg, '完成提示');
             catch ME
                 uialert(app.UIFigure, ['处理出错: ' ME.message], '错误');
             end

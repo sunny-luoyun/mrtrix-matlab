@@ -134,8 +134,8 @@ classdef fba_template < matlab.apps.AppBase
             try
                 step7_template(app.workPath, subList, voxelSize);
                 app.progress_Label.Text = '模板构建完成';
-                uialert(app.UIFigure, '群体模板构建完成！' + newline + ...
-                    '结果保存在 fba/template/', '完成提示');
+                msg = sprintf('群体模板构建完成！\n结果保存在 fba/template/');
+                uialert(app.UIFigure, msg, '完成提示');
             catch ME
                 uialert(app.UIFigure, ['模板构建出错: ' ME.message], '错误');
             end

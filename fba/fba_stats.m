@@ -187,8 +187,8 @@ classdef fba_stats < matlab.apps.AppBase
                 step20_stats(app.workPath, designTxt, contrastTxt, ...
                     nshuffles, cfe_h, cfe_e, cfe_c, metrics);
                 app.progress_Label.Text = 'CFE 统计分析完成';
-                uialert(app.UIFigure, 'CFE 统计分析完成！' + newline + ...
-                    '结果保存在 fba/template/stats_*', '完成提示');
+                msg = sprintf('CFE 统计分析完成！\n结果保存在 fba/template/stats_*');
+                uialert(app.UIFigure, msg, '完成提示');
             catch ME
                 uialert(app.UIFigure, ['统计出错: ' ME.message], '错误');
             end
