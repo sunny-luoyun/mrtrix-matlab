@@ -19,8 +19,8 @@ function step6_normalise(workPath, subList, csdAlgo)
             system(sprintf('maskfilter %s erode %s -npass 1 -force', origMaskFile, maskFile));
         end
         if strcmp(csdAlgo, 'msmt_csd')
-            cmd = sprintf('mtnormalise %s/wmfod.mif %s/wmfod_norm.mif %s/gm.mif %s/gm_norm.mif %s/csf.mif %s/csf_norm.mif -mask %s -force', ...
-                subDir, subDir, subDir, subDir, subDir, subDir, maskFile);
+            cmd = sprintf('mtnormalise %s/wmfod.mif %s/wmfod_norm.mif %s/csf.mif %s/csf_norm.mif -mask %s -force', ...
+                subDir, subDir, subDir, subDir, maskFile);
         else
             cmd = sprintf('mtnormalise %s/wmfod.mif %s/wmfod_norm.mif -mask %s -force', ...
                 subDir, subDir, maskFile);
