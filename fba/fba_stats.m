@@ -144,6 +144,8 @@ classdef fba_stats < matlab.apps.AppBase
             app.progress_Label.Text = '运行 CFE 统计分析...';
             drawnow;
 
+            startTime = tic;
+
             params = struct();
             params.groupNum = app.groupNum_DropDown.Value;
             params.statType = app.statType_DropDown.Value;
@@ -187,7 +189,12 @@ classdef fba_stats < matlab.apps.AppBase
                 step20_stats(app.workPath, designTxt, contrastTxt, ...
                     nshuffles, cfe_h, cfe_e, cfe_c, metrics);
                 app.progress_Label.Text = 'CFE 统计分析完成';
-                msg = sprintf('CFE 统计分析完成！\n结果保存在 fba/template/stats_*');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                msg = sprintf('CFE 统计分析完成！\n结果保存在 fba/template/stats_*\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds);
                 uialert(app.UIFigure, msg, '完成提示');
             catch ME
                 uialert(app.UIFigure, ['统计出错: ' ME.message], '错误');

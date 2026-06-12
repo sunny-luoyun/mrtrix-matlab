@@ -106,6 +106,8 @@ classdef fba_template < matlab.apps.AppBase
             app.progress_Label.Text = '构建群体模板 (耗时较长)...';
             drawnow;
 
+            startTime = tic;
+
             voxelSize = sprintf('%.2f', app.voxel_EditField.Value);
 
             if strcmp(app.mode_ButtonGroup.SelectedObject.Text, '全部被试')
@@ -134,7 +136,12 @@ classdef fba_template < matlab.apps.AppBase
             try
                 step7_template(app.workPath, subList, voxelSize);
                 app.progress_Label.Text = '模板构建完成';
-                msg = sprintf('群体模板构建完成！\n结果保存在 fba/template/');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                msg = sprintf('群体模板构建完成！\n结果保存在 fba/template/\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds);
                 uialert(app.UIFigure, msg, '完成提示');
             catch ME
                 uialert(app.UIFigure, ['模板构建出错: ' ME.message], '错误');
@@ -147,6 +154,8 @@ classdef fba_template < matlab.apps.AppBase
             app.btn_register.Enable = 'off';
             app.progress_Label.Text = '配准到模板...';
             drawnow;
+
+            startTime = tic;
 
             params = struct();
             params.scale = app.reg_scale_EditField.Value;
@@ -172,7 +181,12 @@ classdef fba_template < matlab.apps.AppBase
                 drawnow;
                 step9_mask_inter(app.workPath, subList);
                 app.progress_Label.Text = '配准与 mask 完成';
-                uialert(app.UIFigure, '配准与 mask 交集完成！', '完成提示');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                uialert(app.UIFigure, sprintf('配准与 mask 交集完成！\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds), '完成提示');
             catch ME
                 uialert(app.UIFigure, ['配准出错: ' ME.message], '错误');
             end

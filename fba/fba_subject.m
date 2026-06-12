@@ -157,6 +157,8 @@ classdef fba_subject < matlab.apps.AppBase
             app.progress_Label.Text = '处理中...';
             drawnow;
 
+            startTime = tic;
+
             workPath = app.work_EditField.Value;
             prefix = app.prefix_EditField.Value;
             subList = app.sub_ListBox.Items;
@@ -253,7 +255,12 @@ classdef fba_subject < matlab.apps.AppBase
                 end
 
                 app.progress_Label.Text = '个体处理完成';
-                msg = sprintf('个体水平处理完成！\n结果保存在 fba/subjects/ 目录');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                msg = sprintf('个体水平处理完成！\n结果保存在 fba/subjects/ 目录\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds);
                 uialert(app.UIFigure, msg, '完成提示');
             catch ME
                 uialert(app.UIFigure, ['处理出错: ' ME.message], '错误');

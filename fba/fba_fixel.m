@@ -109,6 +109,7 @@ classdef fba_fixel < matlab.apps.AppBase
             app.btn_fixel_mask.Enable = 'off';
             app.progress_Label.Text = '生成 fixel mask...';
             drawnow;
+            startTime = tic;
             params = struct();
             params.fmls = app.fmls_EditField.Value;
             params.tck_cutoff = app.tck_cutoff_EditField.Value;
@@ -116,7 +117,12 @@ classdef fba_fixel < matlab.apps.AppBase
             try
                 step10_fixel_mask(app.workPath, app.fmls_EditField.Value);
                 app.progress_Label.Text = 'fixel mask 生成完成';
-                uialert(app.UIFigure, 'fixel mask 生成完成！', '完成提示');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                uialert(app.UIFigure, sprintf('fixel mask 生成完成！\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds), '完成提示');
             catch ME
                 uialert(app.UIFigure, ['fixel mask 出错: ' ME.message], '错误');
             end
@@ -127,6 +133,7 @@ classdef fba_fixel < matlab.apps.AppBase
             app.btn_fd_fc.Enable = 'off';
             app.progress_Label.Text = '计算 FD/FC/FDC...';
             drawnow;
+            startTime = tic;
             params = struct();
             params.fmls = app.fmls_EditField.Value;
             save_params('fba', 'fba_fixel_fdfc', app.workPath, params);
@@ -149,7 +156,12 @@ classdef fba_fixel < matlab.apps.AppBase
                 drawnow;
                 step16_log_fdc(app.workPath, subList);
                 app.progress_Label.Text = 'FD/FC/FDC 计算完成';
-                uialert(app.UIFigure, 'FD/FC/FDC 指标计算完成！', '完成提示');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                uialert(app.UIFigure, sprintf('FD/FC/FDC 指标计算完成！\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds), '完成提示');
             catch ME
                 uialert(app.UIFigure, ['指标计算出错: ' ME.message], '错误');
             end
@@ -160,6 +172,7 @@ classdef fba_fixel < matlab.apps.AppBase
             app.btn_tck.Enable = 'off';
             app.progress_Label.Text = '模板全脑追踪...';
             drawnow;
+            startTime = tic;
             params = struct();
             params.algo = app.tck_algo_DropDown.Value;
             params.angle = app.tck_angle_EditField.Value;
@@ -185,7 +198,12 @@ classdef fba_fixel < matlab.apps.AppBase
                 drawnow;
                 step18_connect(app.workPath, tckParams);
                 app.progress_Label.Text = '追踪、SIFT、连接矩阵完成';
-                uialert(app.UIFigure, '全脑追踪、SIFT、fixel-fixel 连接矩阵完成！', '完成提示');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                uialert(app.UIFigure, sprintf('全脑追踪、SIFT、fixel-fixel 连接矩阵完成！\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds), '完成提示');
             catch ME
                 uialert(app.UIFigure, ['追踪出错: ' ME.message], '错误');
             end
@@ -196,6 +214,7 @@ classdef fba_fixel < matlab.apps.AppBase
             app.btn_smooth.Enable = 'off';
             app.progress_Label.Text = '平滑指标...';
             drawnow;
+            startTime = tic;
             params = struct();
             params.fd = app.chk_fd.Value;
             params.logfc = app.chk_logfc.Value;
@@ -219,7 +238,12 @@ classdef fba_fixel < matlab.apps.AppBase
             try
                 step19_smooth(app.workPath, metrics);
                 app.progress_Label.Text = '平滑完成';
-                uialert(app.UIFigure, '平滑完成！', '完成提示');
+
+                elapsedTime = toc(startTime);
+                hours = floor(elapsedTime / 3600);
+                minutes = floor((elapsedTime - hours * 3600) / 60);
+                seconds = mod(elapsedTime, 60);
+                uialert(app.UIFigure, sprintf('平滑完成！\n共耗时：%d小时 %d分钟 %.0f秒', hours, minutes, seconds), '完成提示');
             catch ME
                 uialert(app.UIFigure, ['平滑出错: ' ME.message], '错误');
             end
