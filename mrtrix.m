@@ -15,19 +15,19 @@ classdef mrtrix < matlab.apps.AppBase
 
         % Button pushed function: 整理
         function ButtonPushed(app, event)
-            record_usage('sort', 'sortimg');
+            try record_usage('sort', 'sortimg'); end
             run('sortimg.m')
         end
 
         % Button pushed function: 处理
         function Button_2Pushed(app, event)
-            record_usage('main', 'fun');
+            try record_usage('main', 'fun'); end
             run('fun.m')
         end
 
         % Button pushed function: 统计
         function Button_3Pushed(app, event)
-            record_usage('main', 'stats_fun');
+            try record_usage('main', 'stats_fun'); end
             run('stats_fun.m');
         end
 
@@ -238,7 +238,7 @@ classdef mrtrix < matlab.apps.AppBase
             end
 
             % 记录本次启动
-            record_usage('app', 'mrtrix');
+            try record_usage('app', 'mrtrix'); end
 
             % Create UIFigure and components
             createComponents(app)
