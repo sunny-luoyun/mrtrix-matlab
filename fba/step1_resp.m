@@ -1,17 +1,11 @@
-function step1_resp(workPath, startname, subList, algorithm, params)
+function step1_resp(workPath, subList, algorithm, params)
     fbaSubDir = fullfile(workPath, 'fba', 'subjects');
     for i = 1:length(subList)
         sub = subList{i};
         subDir = fullfile(fbaSubDir, sub);
-        mkdir(subDir);
-        src = fullfile(workPath, startname, sub, 'dwi.mif');
-        if ~exist(src, 'file')
-            warning('跳过 %s: %s 不存在', sub, src);
+        if ~exist(fullfile(subDir, 'dwi.mif'), 'file')
+            warning('跳过 %s: dwi.mif 不存在', sub);
             continue;
-        end
-        dst = fullfile(subDir, 'dwi.mif');
-        if ~exist(dst, 'file')
-            copyfile(src, dst);
         end
         if strcmp(algorithm, 'dhollander')
             cmd = sprintf('dwi2response dhollander %s/dwi.mif %s/response_wm.txt %s/response_gm.txt %s/response_csf.txt -erode %d -fa %f -sfwm %f -gm %d -csf %d -force', ...

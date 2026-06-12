@@ -2,6 +2,7 @@ classdef fba < matlab.apps.AppBase
 
     properties (Access = public)
         UIFigure        matlab.ui.Figure
+        btn_organize    matlab.ui.control.Button
         btn_subject     matlab.ui.control.Button
         btn_template    matlab.ui.control.Button
         btn_fixel       matlab.ui.control.Button
@@ -10,6 +11,10 @@ classdef fba < matlab.apps.AppBase
     end
 
     methods (Access = private)
+
+        function btn_organizePushed(app, event)
+            run('fba_organize.m')
+        end
 
         function btn_subjectPushed(app, event)
             run('fba_subject.m')
@@ -36,7 +41,7 @@ classdef fba < matlab.apps.AppBase
             screen_width = screen_size(3);
             screen_height = screen_size(4);
             figure_width = 300;
-            figure_height = 420;
+            figure_height = 500;
             figure_x = (screen_width - figure_width) / 2;
             figure_y = (screen_height - figure_height) / 2;
 
@@ -49,8 +54,14 @@ classdef fba < matlab.apps.AppBase
             app.Label.HorizontalAlignment = 'center';
             app.Label.FontName = 'PingFang SC';
             app.Label.FontSize = 20;
-            app.Label.Position = [1 350 299 71];
+            app.Label.Position = [1 430 299 71];
             app.Label.Text = 'FBA 纤维分析';
+
+            app.btn_organize = uibutton(app.UIFigure, 'push');
+            app.btn_organize.ButtonPushedFcn = createCallbackFcn(app, @btn_organizePushed, true);
+            app.btn_organize.FontSize = 13;
+            app.btn_organize.Position = [60 345 180 45];
+            app.btn_organize.Text = '0. 数据整理';
 
             app.btn_subject = uibutton(app.UIFigure, 'push');
             app.btn_subject.ButtonPushedFcn = createCallbackFcn(app, @btn_subjectPushed, true);
@@ -61,19 +72,19 @@ classdef fba < matlab.apps.AppBase
             app.btn_template = uibutton(app.UIFigure, 'push');
             app.btn_template.ButtonPushedFcn = createCallbackFcn(app, @btn_templatePushed, true);
             app.btn_template.FontSize = 13;
-            app.btn_template.Position = [60 200 180 45];
+            app.btn_template.Position = [60 205 180 45];
             app.btn_template.Text = '2. 模板构建与配准';
 
             app.btn_fixel = uibutton(app.UIFigure, 'push');
             app.btn_fixel.ButtonPushedFcn = createCallbackFcn(app, @btn_fixelPushed, true);
             app.btn_fixel.FontSize = 13;
-            app.btn_fixel.Position = [60 125 180 45];
+            app.btn_fixel.Position = [60 135 180 45];
             app.btn_fixel.Text = '3. Fixel 指标与追踪';
 
             app.btn_stats = uibutton(app.UIFigure, 'push');
             app.btn_stats.ButtonPushedFcn = createCallbackFcn(app, @btn_statsPushed, true);
             app.btn_stats.FontSize = 13;
-            app.btn_stats.Position = [60 50 180 45];
+            app.btn_stats.Position = [60 65 180 45];
             app.btn_stats.Text = '4. 统计分析';
 
             app.UIFigure.Visible = 'on';

@@ -5,7 +5,6 @@ classdef fba_subject < matlab.apps.AppBase
 
         work_EditField          matlab.ui.control.EditField
         work_Button             matlab.ui.control.Button
-        prefix_EditField        matlab.ui.control.EditField
         find_Button             matlab.ui.control.Button
         sub_ListBox          matlab.ui.control.ListBox
         sub_ContextMenu      matlab.ui.container.ContextMenu
@@ -66,20 +65,28 @@ classdef fba_subject < matlab.apps.AppBase
 
         function find_ButtonPushed(app, event)
             workPath = app.work_EditField.Value;
-            prefix = app.prefix_EditField.Value;
-            if isempty(workPath) || isempty(prefix)
+            if isempty(workPath)
                 return
             end
-            fullPath = fullfile(workPath, prefix);
-            if ~isfolder(fullPath)
-                uialert(app.UIFigure, '预处理路径不存在', '错误');
+            fbaSubPath = fullfile(workPath, 'fba', 'subjects');
+            if ~isfolder(fbaSubPath)
+                uialert(app.UIFigure, '未找到 fba/subjects/ 文件夹，请先运行数据整理', '提示');
                 return
             end
-            subFolders = dir(fullfile(fullPath, 'Sub*'));
+            subFolders = dir(fullfile(fbaSubPath, 'Sub*'));
             if isempty(subFolders)
-                subFolders = dir(fullfile(fullPath, 'sub*'));
+                subFolders = dir(fullfile(fbaSubPath, 'sub*'));
             end
-            names = {subFolders.name};
+            names = {};
+            for i = 1:length(subFolders)
+                if exist(fullfile(fbaSubPath, subFolders(i).name, 'dwi.mif'), 'file')
+                    names{end+1} = subFolders(i).name;
+                end
+            end
+            if isempty(names)
+                uialert(app.UIFigure, '未找到包含 dwi.mif 的被试文件夹', '提示');
+                return
+            end
             app.sub_ListBox.Items = names;
             app.sub_ListBox.Value = {};
         end
@@ -131,7 +138,6 @@ classdef fba_subject < matlab.apps.AppBase
             data = load_params(fullfile(path, file));
             p = data.params;
             app.work_EditField.Value = p.workPath;
-            app.prefix_EditField.Value = p.prefix;
             app.sub_ListBox.Items = strsplit(p.subjects, ', ');
             app.csd_msmt_Radio.Value = strcmp(p.csd, 'msmt');
             app.csd_st_Radio.Value = strcmp(p.csd, 'st');
@@ -160,7 +166,6 @@ classdef fba_subject < matlab.apps.AppBase
             startTime = tic;
 
             workPath = app.work_EditField.Value;
-            prefix = app.prefix_EditField.Value;
             subList = app.sub_ListBox.Items;
             if isempty(workPath) || isempty(subList)
                 uialert(app.UIFigure, '请先选择路径并检索被试', '错误');
@@ -191,7 +196,6 @@ classdef fba_subject < matlab.apps.AppBase
 
             params = struct();
             params.workPath = app.work_EditField.Value;
-            params.prefix = app.prefix_EditField.Value;
             params.subjects = strjoin(app.sub_ListBox.Items, ', ');
             params.csd = 'msmt';
             if app.csd_st_Radio.Value, params.csd = 'st'; end
@@ -216,7 +220,7 @@ classdef fba_subject < matlab.apps.AppBase
                 if app.chk_resp.Value
                     app.progress_Label.Text = '步骤1/4: 计算响应函数...';
                     drawnow;
-                    step1_resp(workPath, prefix, subList, algorithm, params);
+                    step1_resp(workPath, subList, algorithm, params);
                 end
 
                 if app.chk_respmean.Value
@@ -299,13 +303,9 @@ classdef fba_subject < matlab.apps.AppBase
                 'ButtonPushedFcn', createCallbackFcn(app, @work_ButtonPushed, true), ...
                 'Position', [460 595 35 23], 'Text', '...');
 
-            uilabel(app.UIFigure, 'HorizontalAlignment', 'right', ...
-                'Position', [10 558 70 22], 'Text', '预处理后缀');
-            app.prefix_EditField = uieditfield(app.UIFigure, 'text', ...
-                'Position', [90 558 100 22], 'Value', 'NHB');
             app.find_Button = uibutton(app.UIFigure, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @find_ButtonPushed, true), ...
-                'Position', [210 558 60 23], 'Text', '检索');
+                'Position', [90 558 70 23], 'Text', '检索');
             % Create sub_ContextMenu
             app.sub_ContextMenu = uicontextmenu(app.UIFigure);
             app.sub_DeleteMenu = uimenu(app.sub_ContextMenu, ...
@@ -314,7 +314,7 @@ classdef fba_subject < matlab.apps.AppBase
 
             % Create sub_ListBox
             app.sub_ListBox = uilistbox(app.UIFigure, ...
-                'Position', [290 535 200 55]);
+                'Position', [175 535 315 55]);
             app.sub_ListBox.ContextMenu = app.sub_ContextMenu;
 
             uilabel(app.UIFigure, 'HorizontalAlignment', 'left', ...
