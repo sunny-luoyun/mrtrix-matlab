@@ -101,15 +101,8 @@ classdef mrtrix < matlab.apps.AppBase
 
         function doUpdate(app, dlg, appDir)
             fprintf('正在检查更新...\n');
-            [status, result] = system(['git -C "', appDir, '" pull 2>&1']);
-            if status == 0
-                fprintf('git pull 更新成功，重启应用...\n');
-                restartApp(app, dlg);
-                return;
-            end
-            fprintf('git pull 失败，尝试 zip 更新...\n');
             if zipUpdate(app, appDir)
-                fprintf('zip 更新成功，重启应用...\n');
+                fprintf('更新成功，重启应用...\n');
                 restartApp(app, dlg);
             else
                 fprintf('更新失败，请检查网络连接后重试。\n');
@@ -123,7 +116,8 @@ classdef mrtrix < matlab.apps.AppBase
                 tempDir = tempname;
                 mkdir(tempDir);
                 fprintf('正在下载更新包...\n');
-                websave(fullfile(tempDir, 'update.zip'), zipUrl);
+                opts = weboptions('Timeout', 60);
+                websave(fullfile(tempDir, 'update.zip'), zipUrl, opts);
                 fprintf('下载完成，正在解压...\n');
                 unzip(fullfile(tempDir, 'update.zip'), tempDir);
                 files = dir(tempDir);
