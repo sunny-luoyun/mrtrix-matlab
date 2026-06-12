@@ -115,11 +115,25 @@ classdef mrtrix < matlab.apps.AppBase
                 zipUrl = 'https://gitee.com/luoyun-weixi/mrtrix-matlab/repository/archive/main.zip';
                 tempDir = tempname;
                 mkdir(tempDir);
+                zipPath = fullfile(tempDir, 'update.zip');
+
                 fprintf('正在下载更新包...\n');
-                opts = weboptions('Timeout', 60);
-                websave(fullfile(tempDir, 'update.zip'), zipUrl, opts);
+
+                [wgetStatus, ~] = system(['wget -q -O "', zipPath, '" "', zipUrl, '" 2>&1']);
+                if wgetStatus ~= 0 || ~exist(zipPath, 'file')
+                    opts = weboptions('Timeout', 60);
+                    zipPath = websave(zipPath, zipUrl, opts);
+                end
+
+                if ~exist(zipPath, 'file')
+                    error('下载文件不存在');
+                end
+                if dir(zipPath).bytes < 1000
+                    error('下载文件不完整');
+                end
+
                 fprintf('下载完成，正在解压...\n');
-                unzip(fullfile(tempDir, 'update.zip'), tempDir);
+                unzip(zipPath, tempDir);
                 files = dir(tempDir);
                 subdirIdx = find([files.isdir] & ~ismember({files.name}, {'.', '..'}), 1);
                 extractedDir = fullfile(tempDir, files(subdirIdx).name);
@@ -128,7 +142,7 @@ classdef mrtrix < matlab.apps.AppBase
                 rmdir(tempDir, 's');
                 success = true;
             catch ME
-                fprintf('zip 更新失败: %s\n', ME.message);
+                fprintf('更新失败: %s\n', ME.message);
                 success = false;
             end
         end
