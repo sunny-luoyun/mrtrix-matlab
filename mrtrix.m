@@ -189,8 +189,7 @@ classdef mrtrix < matlab.apps.AppBase
             app.Button_4.Position = [52 26 170 52];
             app.Button_4.Text = '图形化查看';
 
-            % Show the figure after all components are created
-            app.UIFigure.Visible = 'on';
+            % Keep figure hidden until update check completes
         end
 
         % Center the UIFigure on the screen
@@ -230,11 +229,14 @@ classdef mrtrix < matlab.apps.AppBase
             % 记录本次启动
             try record_usage('app', 'mrtrix'); end
 
-            % Create UIFigure and components
+            % Create UIFigure and components (kept hidden)
             createComponents(app)
 
-            % Check for updates
+            % Check for updates before showing main menu
             try checkForUpdate(app); end
+
+            % Show main menu after update check is resolved
+            app.UIFigure.Visible = 'on';
 
             % Register the app with App Designer
             registerApp(app, app.UIFigure)
