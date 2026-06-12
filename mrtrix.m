@@ -101,7 +101,7 @@ classdef mrtrix < matlab.apps.AppBase
 
         function doUpdate(app, dlg, appDir)
             fprintf('正在检查更新...\n');
-            if zipUpdate(app, appDir)
+            if gitUpdate(app, appDir)
                 fprintf('更新成功，重启应用...\n');
                 restartApp(app, dlg);
             else
@@ -110,35 +110,17 @@ classdef mrtrix < matlab.apps.AppBase
             end
         end
 
-        function success = zipUpdate(~, appDir)
+        function success = gitUpdate(~, appDir)
             try
-                zipUrl = 'https://gitee.com/luoyun-weixi/mrtrix-matlab/repository/archive/main.zip';
+                gitUrl = 'https://gitee.com/luoyun-weixi/mrtrix-matlab.git';
                 tempDir = tempname;
-                mkdir(tempDir);
-                zipPath = fullfile(tempDir, 'update.zip');
-
                 fprintf('正在下载更新包...\n');
-
-                [wgetStatus, ~] = system(['wget -q -O "', zipPath, '" "', zipUrl, '" 2>&1']);
-                if wgetStatus ~= 0 || ~exist(zipPath, 'file')
-                    opts = weboptions('Timeout', 60);
-                    zipPath = websave(zipPath, zipUrl, opts);
+                [status, result] = system(['git clone --depth 1 "', gitUrl, '" "', tempDir, '" 2>&1']);
+                if status ~= 0
+                    error('git clone 失败: %s', strtrim(result));
                 end
-
-                if ~exist(zipPath, 'file')
-                    error('下载文件不存在');
-                end
-                if dir(zipPath).bytes < 1000
-                    error('下载文件不完整');
-                end
-
-                fprintf('下载完成，正在解压...\n');
-                unzip(zipPath, tempDir);
-                files = dir(tempDir);
-                subdirIdx = find([files.isdir] & ~ismember({files.name}, {'.', '..'}), 1);
-                extractedDir = fullfile(tempDir, files(subdirIdx).name);
-                fprintf('正在复制文件...\n');
-                copyfile(fullfile(extractedDir, '*'), appDir, 'f');
+                fprintf('下载完成，正在复制文件...\n');
+                copyfile(fullfile(tempDir, '*'), appDir, 'f');
                 rmdir(tempDir, 's');
                 success = true;
             catch ME
