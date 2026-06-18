@@ -86,22 +86,24 @@ function buildmap(workPath, subFolder, currentPath,maskpath,sy,zero,len,rare,zb,
         
         % 加载 mat 文件数据
         mat_data = load(mat_file);
-        matrix_125x125 = mat_data.NetworkMatrix;  % 假设 mat 文件中矩阵变量名为 NetworkMatrix
-    
-        % 将索引调整为 MATLAB 的索引（MATLAB 默认是 1-based 索引）
-        node_indices = str2double(strsplit(brainnet, ',')) - 1;
-        node_indices = node_indices + 1;  % 转换为 1-based 索引
-    
-        % 提取子矩阵
-        matrix_32x32 = matrix_125x125(node_indices, node_indices);
-    
-        % 保存为新的 mat 文件
-        output_mat_file_path = fullfile(path_results, [subFolder '_ROIBN.mat']);
-        save(output_mat_file_path, 'matrix_32x32', '-mat');
+        full_matrix = mat_data.NetworkMatrix;
+        num_nodes = size(full_matrix, 1);
 
-        % 将子矩阵也写出为 CSV
-        csv_roi_file = fullfile(path_results, [subFolder '_ROIBN.csv']);
-        writematrix(matrix_32x32, csv_roi_file);
+        node_indices = str2double(strsplit(brainnet, ','));
+        if any(isnan(node_indices)) || any(node_indices < 1) || any(node_indices > num_nodes)
+            warning('脑区编号无效：编号超出范围 (1-%d) 或包含非数值字符，跳过提取', num_nodes);
+        else
+            % 提取子矩阵
+            roi_matrix = full_matrix(node_indices, node_indices);
+
+            % 保存为新的 mat 文件
+            output_mat_file_path = fullfile(path_results, [subFolder '_ROIBN.mat']);
+            save(output_mat_file_path, 'roi_matrix', '-mat');
+
+            % 将子矩阵也写出为 CSV
+            csv_roi_file = fullfile(path_results, [subFolder '_ROIBN.csv']);
+            writematrix(roi_matrix, csv_roi_file);
+        end
     end
 
 end
