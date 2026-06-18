@@ -12,22 +12,22 @@ classdef stats_fun < matlab.apps.AppBase
     methods (Access = private)
 
         function mrstats_ButtonPushed(app, event)
-            record_usage('stats', 'mrstats');
+            try record_usage('stats', 'mrstats'); end
             run('mrstats.m')
         end
 
         function mrcluster_ButtonPushed(app, event)
-            record_usage('stats', 'mrclusterstats');
+            try record_usage('stats', 'mrclusterstats'); end
             run('mrclusterstats.m')
         end
 
         function conn_ButtonPushed(app, event)
-            record_usage('stats', 'connectomestats');
+            try record_usage('stats', 'connectomestats'); end
             run('connectomestats.m')
         end
 
         function tckstats_ButtonPushed(app, event)
-            record_usage('stats', 'tckstats');
+            try record_usage('stats', 'tckstats'); end
             run('tckstats.m')
         end
     end
@@ -85,6 +85,7 @@ classdef stats_fun < matlab.apps.AppBase
     methods (Access = public)
 
         function app = stats_fun
+            setup_path();
             createComponents(app)
             registerApp(app, app.UIFigure)
             if nargout == 0
