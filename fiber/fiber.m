@@ -17,6 +17,8 @@ classdef fiber < matlab.apps.AppBase
         Label_11             matlab.ui.control.Label
         fibernumEditField    matlab.ui.control.EditField
         Label_10             matlab.ui.control.Label
+        seeds_EditField      matlab.ui.control.EditField
+        Label_seeds          matlab.ui.control.Label
         trytimeEditField     matlab.ui.control.NumericEditField
         Label_9              matlab.ui.control.Label
         FODEditField         matlab.ui.control.NumericEditField
@@ -92,6 +94,9 @@ classdef fiber < matlab.apps.AppBase
             app.FODEditField.Value = p.FOD;
             app.trytimeEditField.Value = p.trytime;
             app.fibernumEditField.Value = p.fibernum;
+            if isfield(p, 'seeds')
+                app.seeds_EditField.Value = p.seeds;
+            end
             app.roi_EditField.Value = p.roi;
             app.maskpath_EditField.Value = p.mask;
             app.tckweight_CheckBox.Value = p.tckweight;
@@ -146,6 +151,7 @@ classdef fiber < matlab.apps.AppBase
             params.FOD = app.FODEditField.Value;
             params.trytime = app.trytimeEditField.Value;
             params.fibernum = app.fibernumEditField.Value;
+            params.seeds = app.seeds_EditField.Value;
             params.roi = app.roi_EditField.Value;
             params.mask = app.maskpath_EditField.Value;
             params.tckweight = app.tckweight_CheckBox.Value;
@@ -205,6 +211,7 @@ classdef fiber < matlab.apps.AppBase
                     fod = app.FODEditField.Value;
                     trytime = app.trytimeEditField.Value;
                     fibernum = app.fibernumEditField.Value;
+                    seeds = app.seeds_EditField.Value;
                     roi = app.roi_EditField.Value;
                     roi = strrep(roi, ' ', ',');
                     mask = app.maskpath_EditField.Value;
@@ -228,7 +235,7 @@ classdef fiber < matlab.apps.AppBase
                     end
                     
                     % 执行纤维创建，并存储结果
-                    [currentPath, fodfolder] = fiberbuild(workPath, subFolder, currentPath, startfloder, optiontest, goin, angle, min, max, fod, trytime, fibernum, modetest, roi, mask, ROIDef);
+                    [currentPath, fodfolder] = fiberbuild(workPath, subFolder, currentPath, startfloder, optiontest, goin, angle, min, max, fod, trytime, fibernum, modetest, roi, mask, ROIDef, seeds);
                     fiberbuildResults{i} = {currentPath, fodfolder}; % 存储纤维创建的结果
                 end
                 
@@ -353,6 +360,8 @@ classdef fiber < matlab.apps.AppBase
                 app.Label_9.Enable = "on";
                 app.fibernumEditField.Enable = "on";
                 app.Label_10.Enable = "on";
+                app.seeds_EditField.Enable = "on";
+                app.Label_seeds.Enable = "on";
             else
                 app.track_ButtonGroup.Enable = "off";
                 app.mode_ButtonGroup.Enable = "off";
@@ -370,6 +379,8 @@ classdef fiber < matlab.apps.AppBase
                 app.Label_9.Enable = "off";
                 app.fibernumEditField.Enable = "off";
                 app.Label_10.Enable = "off";
+                app.seeds_EditField.Enable = "off";
+                app.Label_seeds.Enable = "off";
             end
         end
 
@@ -449,35 +460,50 @@ classdef fiber < matlab.apps.AppBase
         % Selection changed function: mode_ButtonGroup
         function mode_ButtonGroupSelectionChanged(app, event)
             selectedButton = app.mode_ButtonGroup.SelectedObject;
-            if strcmp(selectedButton.Text, '全脑追踪')
+            modeText = selectedButton.Text;
+
+            % 输入控件启禁
+            if strcmp(modeText, '全脑追踪')
                 app.roi_EditField.Enable = "off";
                 app.addmask_Button.Enable = "off";
                 app.maskpath_EditField.Enable = "off";
                 app.Label_3.Enable = "off";
                 app.Label_4.Enable = "off"; 
                 app.defroi_Button.Enable = "off";
-            elseif strcmp(selectedButton.Text, '基于单种子点')
+            elseif strcmp(modeText, '基于单种子点')
                 app.roi_EditField.Enable = "on";
                 app.Label_3.Enable = "on";
                 app.addmask_Button.Enable = "off";
                 app.maskpath_EditField.Enable = "off";
                 app.Label_4.Enable = "off"; 
                 app.defroi_Button.Enable = "off";
-            elseif strcmp(selectedButton.Text, '基于单mask')
+            elseif strcmp(modeText, '基于单mask')
                 app.roi_EditField.Enable = "off";
                 app.addmask_Button.Enable = "on";
                 app.maskpath_EditField.Enable = "on";
                 app.Label_3.Enable = "off";
                 app.Label_4.Enable = "on";
                 app.defroi_Button.Enable = "off";
-            elseif strcmp(selectedButton.Text, '基于多roi')
+            elseif strcmp(modeText, '基于多roi')
                 app.roi_EditField.Enable = "off";
                 app.addmask_Button.Enable = "off";
                 app.maskpath_EditField.Enable = "off";
                 app.Label_3.Enable = "off";
                 app.Label_4.Enable = "off";
                 app.defroi_Button.Enable = "on";
+            end
 
+            % 根据模式自动填入推荐参数
+            switch modeText
+                case '全脑追踪'
+                    app.fibernumEditField.Value = '10m';
+                    app.seeds_EditField.Value = '10m';
+                case {'基于单种子点', '基于单mask'}
+                    app.fibernumEditField.Value = '1m';
+                    app.seeds_EditField.Value = '1m';
+                case '基于多roi'
+                    app.fibernumEditField.Value = '100k';
+                    app.seeds_EditField.Value = '20m';
             end
         end
 
@@ -543,6 +569,12 @@ classdef fiber < matlab.apps.AppBase
         % Value changed function: fibernumEditField
         function fibernumEditFieldValueChanged(app, event)
             value = app.fibernumEditField.Value;
+            
+        end
+
+        % Value changed function: seeds_EditField
+        function seeds_EditFieldValueChanged(app, event)
+            value = app.seeds_EditField.Value;
             
         end
 
@@ -896,6 +928,20 @@ classdef fiber < matlab.apps.AppBase
             app.fibernumEditField.Position = [385 147 37 22];
             app.fibernumEditField.Value = '10m';
             app.fibernumEditField.Enable = "off";
+
+            % Create Label_seeds
+            app.Label_seeds = uilabel(app.UIFigure);
+            app.Label_seeds.HorizontalAlignment = 'right';
+            app.Label_seeds.Position = [430 147 73 22];
+            app.Label_seeds.Text = '种子数上限';
+            app.Label_seeds.Enable = "off";
+
+            % Create seeds_EditField
+            app.seeds_EditField = uieditfield(app.UIFigure, 'text');
+            app.seeds_EditField.ValueChangedFcn = createCallbackFcn(app, @seeds_EditFieldValueChanged, true);
+            app.seeds_EditField.Position = [505 147 50 22];
+            app.seeds_EditField.Value = '10m';
+            app.seeds_EditField.Enable = "off";
 
             % Create Label_11
             app.Label_11 = uilabel(app.UIFigure);

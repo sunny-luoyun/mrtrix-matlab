@@ -1,4 +1,4 @@
-function [newpath,fodfolder] = fiberbuild(workPath,subFolder,currentPath,startfloder,optiontest,goin,angle,min,max,fod,trytime,fibernum,modetest,roi,mask,ROIDef)
+function [newpath,fodfolder] = fiberbuild(workPath,subFolder,currentPath,startfloder,optiontest,goin,angle,min,max,fod,trytime,fibernum,modetest,roi,mask,ROIDef,seeds)
     
     newfolder = sprintf('fiber_%s', ...
         startfloder);
@@ -27,18 +27,18 @@ function [newpath,fodfolder] = fiberbuild(workPath,subFolder,currentPath,startfl
 
     if strcmp(modetest, '全脑追踪')
     
-        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack -seed_gmwmi %s/T1_corg/%s/gmwmSeed_coreg.mif -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -trials %d -select %s %s/%s %s/tracks.tck -force', ... 
-            optiontest,workPath,subFolder,workPath,subFolder,goin,angle,min,max,fod,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
+        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack -seed_gmwmi %s/T1_corg/%s/gmwmSeed_coreg.mif -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -seeds %s -trials %d -select %s %s/%s %s/tracks.tck -force', ... 
+            optiontest,workPath,subFolder,workPath,subFolder,goin,angle,min,max,fod,seeds,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
         system(cmd);
     
     elseif strcmp(modetest,'基于单种子点')
-        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack -seed_sphere %s -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -trials %d -select %s %s/%s %s/tracks.tck -force', ... 
-            optiontest,workPath,subFolder,roi,goin,angle,min,max,fod,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
+        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack -seed_sphere %s -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -seeds %s -trials %d -select %s %s/%s %s/tracks.tck -force', ... 
+            optiontest,workPath,subFolder,roi,goin,angle,min,max,fod,seeds,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
         system(cmd);
 
     elseif strcmp(modetest,'基于单mask')
-        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack -seed_image %s -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -trials %d -select %s %s/%s %s/tracks.tck -force', ... 
-            optiontest,workPath,subFolder,mask,goin,angle,min,max,fod,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
+        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack -seed_image %s -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -seeds %s -trials %d -select %s %s/%s %s/tracks.tck -force', ... 
+            optiontest,workPath,subFolder,mask,goin,angle,min,max,fod,seeds,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
         system(cmd);
     elseif strcmp(modetest,'基于多roi')
         if isempty(ROIDef)
@@ -72,8 +72,8 @@ function [newpath,fodfolder] = fiberbuild(workPath,subFolder,currentPath,startfl
         end
 
         fprintf('%s\n', formattedString);
-        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack %s -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -trials %d -select %s %s/%s %s/tracks.tck -force', ...
-            optiontest,workPath,subFolder,formattedString,goin,angle,min,max,fod,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
+        cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_coreg.mif -backtrack %s -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -seeds %s -trials %d -select %s %s/%s %s/tracks.tck -force', ...
+            optiontest,workPath,subFolder,formattedString,goin,angle,min,max,fod,seeds,trytime,fibernum,fodfilepath,fodfile_name,outputpath);
         
         system(cmd);
     end
