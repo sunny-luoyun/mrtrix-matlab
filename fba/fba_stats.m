@@ -456,6 +456,24 @@ classdef fba_stats < matlab.apps.AppBase
             app.cfe_c_EditField.Value = p.cfe_c;
             app.design_TextArea.Value = p.designTxt;
             app.contrast_TextArea.Value = p.contrastTxt;
+            if isfield(p, 'condA_key')
+                app.condA_key_EditField.Value = p.condA_key;
+            end
+            if isfield(p, 'condB_key')
+                app.condB_key_EditField.Value = p.condB_key;
+            end
+            if isfield(p, 'tp')
+                app.tp_DropDown.Value = p.tp;
+            end
+            if isfield(p, 'chk_cond')
+                app.chk_cond.Value = p.chk_cond;
+            end
+            if isfield(p, 'chk_time')
+                app.chk_time.Value = p.chk_time;
+            end
+            if isfield(p, 'chk_interact')
+                app.chk_interact.Value = p.chk_interact;
+            end
         end
 
         function btn_statsPushed(app, event)
@@ -482,6 +500,12 @@ classdef fba_stats < matlab.apps.AppBase
             params.cfe_c = app.cfe_c_EditField.Value;
             params.designTxt = app.design_TextArea.Value;
             params.contrastTxt = app.contrast_TextArea.Value;
+            params.condA_key = app.condA_key_EditField.Value;
+            params.condB_key = app.condB_key_EditField.Value;
+            params.tp = app.tp_DropDown.Value;
+            params.chk_cond = app.chk_cond.Value;
+            params.chk_time = app.chk_time.Value;
+            params.chk_interact = app.chk_interact.Value;
             save_params('fba', 'fba_stats', app.workPath, params);
 
             designTxt = app.design_TextArea.Value;

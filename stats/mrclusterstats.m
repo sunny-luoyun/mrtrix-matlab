@@ -391,6 +391,34 @@ classdef mrclusterstats < matlab.apps.AppBase
             app.mrcluster_anova2_Radio.Value = strcmp(p.design, 'anova2');
             app.mrcluster_connect6_Radio.Value = strcmp(p.connect, '6');
             app.mrcluster_connect26_Radio.Value = strcmp(p.connect, '26');
+            if isfield(p, 'fileList')
+                app.fileList = p.fileList;
+            end
+            if isfield(p, 'mrcluster_anova1_num')
+                app.mrcluster_anova1_num_EditField.Value = p.mrcluster_anova1_num;
+                mrcluster_anova1_num_EditFieldValueChanged(app);
+                for ci = 1:p.mrcluster_anova1_num
+                    fld = sprintf('mrcluster_a%d', ci);
+                    if isfield(p, fld)
+                        ef = sprintf('mrcluster_a%d_EditField', ci);
+                        app.(ef).Value = p.(fld);
+                    end
+                end
+            end
+            if isfield(p, 'mrcluster_anova2_fa')
+                app.mrcluster_anova2_fa_EditField.Value = p.mrcluster_anova2_fa;
+                app.mrcluster_anova2_fb_EditField.Value = p.mrcluster_anova2_fb;
+                mrcluster_anova2_update_grid(app);
+                if isfield(p, 'anova2_cell_values') && ~isempty(p.anova2_cell_values)
+                    for ai = 1:size(p.anova2_cell_values, 1)
+                        for bj = 1:size(p.anova2_cell_values, 2)
+                            if ~isempty(p.anova2_cell_values{ai, bj})
+                                app.anova2_cell_editfields{ai, bj}.Value = p.anova2_cell_values{ai, bj};
+                            end
+                        end
+                    end
+                end
+            end
         end
 
         function start_ButtonPushed(app, ~)
@@ -417,6 +445,24 @@ classdef mrclusterstats < matlab.apps.AppBase
             if app.mrcluster_anova2_Radio.Value, params.design = 'anova2'; end
             params.connect = '6';
             if app.mrcluster_connect26_Radio.Value, params.connect = '26'; end
+            params.fileList = app.fileList;
+            params.mrcluster_anova1_num = app.mrcluster_anova1_num_EditField.Value;
+            for ci = 1:10
+                fld = sprintf('mrcluster_a%d', ci);
+                ef  = sprintf('mrcluster_a%d_EditField', ci);
+                params.(fld) = app.(ef).Value;
+            end
+            params.mrcluster_anova2_fa = app.mrcluster_anova2_fa_EditField.Value;
+            params.mrcluster_anova2_fb = app.mrcluster_anova2_fb_EditField.Value;
+            if ~isempty(app.anova2_cell_editfields)
+                [nr, nc] = size(app.anova2_cell_editfields);
+                params.anova2_cell_values = cell(nr, nc);
+                for ai = 1:nr
+                    for bj = 1:nc
+                        params.anova2_cell_values{ai, bj} = app.anova2_cell_editfields{ai, bj}.Value;
+                    end
+                end
+            end
             save_params('stats', 'mrclusterstats', app.mrcluster_output_EditField.Value, params);
             mrcluster_run(app);
         end

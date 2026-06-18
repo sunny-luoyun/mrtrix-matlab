@@ -106,6 +106,9 @@ classdef fiber < matlab.apps.AppBase
             app.smooth_EditField.Value = p.smooth;
             app.useweight_CheckBox.Value = p.useweight;
             app.gaosmooth_CheckBox.Value = p.gaosmooth;
+            if isfield(p, 'ROIConfig')
+                app.ROIConfig = p.ROIConfig;
+            end
         end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,6 +165,9 @@ classdef fiber < matlab.apps.AppBase
             params.smooth = app.smooth_EditField.Value;
             params.useweight = app.useweight_CheckBox.Value;
             params.gaosmooth = app.gaosmooth_CheckBox.Value;
+            if isprop(app, 'ROIConfig')
+                params.ROIConfig = app.ROIConfig;
+            end
             save_params('fiber', 'fiber', workPath, params);
             fullPath = fullfile(workPath, folderName);
             

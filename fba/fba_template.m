@@ -90,6 +90,13 @@ classdef fba_template < matlab.apps.AppBase
             app.voxel_EditField.Value = p.voxel;
             app.mode_all_Radio.Value = strcmp(p.mode, 'all');
             app.mode_subset_Radio.Value = strcmp(p.mode, 'subset');
+            if isfield(p, 'workPath')
+                app.work_EditField.Value = p.workPath;
+                app.workPath = p.workPath;
+            end
+            if isfield(p, 'subset') && ~isempty(p.subset)
+                app.sub_listbox.Value = p.subset;
+            end
         end
 
         function register_import_ButtonPushed(app, event)
@@ -99,6 +106,10 @@ classdef fba_template < matlab.apps.AppBase
             p = data.params;
             app.reg_scale_EditField.Value = p.scale;
             app.reg_niter_EditField.Value = p.niter;
+            if isfield(p, 'workPath')
+                app.work_EditField.Value = p.workPath;
+                app.workPath = p.workPath;
+            end
         end
 
         function btn_templatePushed(app, event)
@@ -131,6 +142,8 @@ classdef fba_template < matlab.apps.AppBase
             params.voxel = app.voxel_EditField.Value;
             params.mode = 'all';
             if app.mode_subset_Radio.Value, params.mode = 'subset'; end
+            params.subset = app.sub_listbox.Value;
+            params.workPath = app.workPath;
             save_params('fba', 'fba_template_build', app.workPath, params);
 
             try
@@ -160,6 +173,7 @@ classdef fba_template < matlab.apps.AppBase
             params = struct();
             params.scale = app.reg_scale_EditField.Value;
             params.niter = app.reg_niter_EditField.Value;
+            params.workPath = app.workPath;
             save_params('fba', 'fba_template_register', app.workPath, params);
 
             subList = app.allSubs;

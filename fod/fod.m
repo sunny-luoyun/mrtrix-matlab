@@ -121,6 +121,33 @@ classdef fod < matlab.apps.AppBase
             app.fod_CheckBox.Value = p.fod;
             app.norm_CheckBox.Value = p.norm;
             app.f2m_CheckBox.Value = p.f2m;
+            if isfield(p, 'respAlgo')
+                buttons = app.resp_ButtonGroup.Children;
+                for i = 1:length(buttons)
+                    if strcmp(buttons(i).Text, p.respAlgo)
+                        buttons(i).Value = true;
+                        break;
+                    end
+                end
+            end
+            if isfield(p, 'wmvoxelAlgo')
+                buttons = app.wmvoxel_ButtonGroup.Children;
+                for i = 1:length(buttons)
+                    if strcmp(buttons(i).Text, p.wmvoxelAlgo)
+                        buttons(i).Value = true;
+                        break;
+                    end
+                end
+            end
+            if isfield(p, 'fodAlgo')
+                buttons = app.fod_ButtonGroup.Children;
+                for i = 1:length(buttons)
+                    if strcmp(buttons(i).Text, p.fodAlgo)
+                        buttons(i).Value = true;
+                        break;
+                    end
+                end
+            end
         end
 
         % Button pushed function: start_Button

@@ -370,6 +370,34 @@ classdef connectomestats < matlab.apps.AppBase
             app.conn_algo_nbs_Radio.Value = strcmp(p.algo, 'nbs');
             app.conn_algo_tfnbs_Radio.Value = strcmp(p.algo, 'tfnbs');
             app.conn_algo_none_Radio.Value = strcmp(p.algo, 'none');
+            if isfield(p, 'fileList')
+                app.fileList = p.fileList;
+            end
+            if isfield(p, 'conn_anova1_num')
+                app.conn_anova1_num_EditField.Value = p.conn_anova1_num;
+                conn_anova1_num_EditFieldValueChanged(app);
+                for ci = 1:p.conn_anova1_num
+                    fld = sprintf('conn_a%d', ci);
+                    if isfield(p, fld)
+                        ef = sprintf('conn_a%d_EditField', ci);
+                        app.(ef).Value = p.(fld);
+                    end
+                end
+            end
+            if isfield(p, 'conn_anova2_fa')
+                app.conn_anova2_fa_EditField.Value = p.conn_anova2_fa;
+                app.conn_anova2_fb_EditField.Value = p.conn_anova2_fb;
+                conn_anova2_update_grid(app);
+                if isfield(p, 'anova2_cell_values') && ~isempty(p.anova2_cell_values)
+                    for ai = 1:size(p.anova2_cell_values, 1)
+                        for bj = 1:size(p.anova2_cell_values, 2)
+                            if ~isempty(p.anova2_cell_values{ai, bj})
+                                app.anova2_cell_editfields{ai, bj}.Value = p.anova2_cell_values{ai, bj};
+                            end
+                        end
+                    end
+                end
+            end
         end
 
         function start_ButtonPushed(app, ~)
@@ -395,6 +423,24 @@ classdef connectomestats < matlab.apps.AppBase
             params.algo = 'tfnbs';
             if app.conn_algo_nbs_Radio.Value, params.algo = 'nbs'; end
             if app.conn_algo_none_Radio.Value, params.algo = 'none'; end
+            params.fileList = app.fileList;
+            params.conn_anova1_num = app.conn_anova1_num_EditField.Value;
+            for ci = 1:10
+                fld = sprintf('conn_a%d', ci);
+                ef  = sprintf('conn_a%d_EditField', ci);
+                params.(fld) = app.(ef).Value;
+            end
+            params.conn_anova2_fa = app.conn_anova2_fa_EditField.Value;
+            params.conn_anova2_fb = app.conn_anova2_fb_EditField.Value;
+            if ~isempty(app.anova2_cell_editfields)
+                [nr, nc] = size(app.anova2_cell_editfields);
+                params.anova2_cell_values = cell(nr, nc);
+                for ai = 1:nr
+                    for bj = 1:nc
+                        params.anova2_cell_values{ai, bj} = app.anova2_cell_editfields{ai, bj}.Value;
+                    end
+                end
+            end
             save_params('stats', 'connectomestats', app.conn_output_EditField.Value, params);
             conn_run(app);
         end

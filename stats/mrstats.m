@@ -198,6 +198,12 @@ classdef mrstats < matlab.apps.AppBase
             app.mrstats_sphere_z_EditField.Value = p.sphere_z;
             app.mrstats_sphere_r_EditField.Value = p.sphere_r;
             app.mrstats_ref_EditField.Value = p.ref;
+            if isfield(p, 'fileList')
+                app.fileList = p.fileList;
+            end
+            if isfield(p, 'currentMaskPath')
+                app.currentMaskPath = p.currentMaskPath;
+            end
         end
 
         function start_ButtonPushed(app, ~)
@@ -222,6 +228,8 @@ classdef mrstats < matlab.apps.AppBase
             params.sphere_z = app.mrstats_sphere_z_EditField.Value;
             params.sphere_r = app.mrstats_sphere_r_EditField.Value;
             params.ref = app.mrstats_ref_EditField.Value;
+            params.fileList = app.fileList;
+            params.currentMaskPath = app.currentMaskPath;
             save_params('stats', 'mrstats', app.mrstats_output_EditField.Value, params);
             mrstats_run(app);
         end

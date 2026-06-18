@@ -70,6 +70,10 @@ classdef fba_fixel < matlab.apps.AppBase
             p = data.params;
             app.fmls_EditField.Value = p.fmls;
             app.tck_cutoff_EditField.Value = p.tck_cutoff;
+            if isfield(p, 'workPath')
+                app.work_EditField.Value = p.workPath;
+                app.workPath = p.workPath;
+            end
         end
 
         function fd_fc_import_ButtonPushed(app, event)
@@ -78,6 +82,10 @@ classdef fba_fixel < matlab.apps.AppBase
             data = load_params(fullfile(path, file));
             p = data.params;
             app.fmls_EditField.Value = p.fmls;
+            if isfield(p, 'workPath')
+                app.work_EditField.Value = p.workPath;
+                app.workPath = p.workPath;
+            end
         end
 
         function tck_import_ButtonPushed(app, event)
@@ -93,6 +101,10 @@ classdef fba_fixel < matlab.apps.AppBase
             app.tck_select_EditField.Value = p.select;
             app.tck_cutoff_EditField.Value = p.cutoff;
             app.tck_sift_EditField.Value = p.sift;
+            if isfield(p, 'workPath')
+                app.work_EditField.Value = p.workPath;
+                app.workPath = p.workPath;
+            end
         end
 
         function smooth_import_ButtonPushed(app, event)
@@ -103,6 +115,10 @@ classdef fba_fixel < matlab.apps.AppBase
             app.chk_fd.Value = p.fd;
             app.chk_logfc.Value = p.logfc;
             app.chk_fdc.Value = p.fdc;
+            if isfield(p, 'workPath')
+                app.work_EditField.Value = p.workPath;
+                app.workPath = p.workPath;
+            end
         end
 
         function btn_fixel_maskPushed(app, event)

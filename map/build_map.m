@@ -75,6 +75,24 @@ classdef build_map < matlab.apps.AppBase
             app.output_txt_CheckBox.Value = p.output_txt;
             app.getbrainnet_CheckBox.Value = p.getbrainnet;
             app.brainnetnum_EditField.Value = p.brainnetnum;
+            if isfield(p, 'rareAlgo')
+                buttons = app.assignrare_ButtonGroup.Children;
+                for i = 1:length(buttons)
+                    if strcmp(buttons(i).Text, p.rareAlgo)
+                        buttons(i).Value = true;
+                        break;
+                    end
+                end
+            end
+            if isfield(p, 'zbAlgo')
+                buttons = app.assignzb_ButtonGroup.Children;
+                for i = 1:length(buttons)
+                    if strcmp(buttons(i).Text, p.zbAlgo)
+                        buttons(i).Value = true;
+                        break;
+                    end
+                end
+            end
         end
 
         % Button pushed function: start_Button
