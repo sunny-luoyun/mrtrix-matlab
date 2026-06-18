@@ -113,9 +113,14 @@ classdef mrtrix < matlab.apps.AppBase
         function success = gitUpdate(~, appDir)
             try
                 fprintf('正在拉取更新...\n');
-                [status, result] = system(['git -C "', appDir, '" pull --ff-only origin main 2>&1']);
-                if status ~= 0
-                    error('git pull 失败: %s', strtrim(result));
+                updateUrl = 'https://gitee.com/luoyun-weixi/mrtrix-matlab.git';
+                [s1, r1] = system(['git -C "', appDir, '" fetch --depth 1 "', updateUrl, '" main 2>&1']);
+                if s1 ~= 0
+                    error('git fetch 失败: %s', strtrim(r1));
+                end
+                [s2, r2] = system(['git -C "', appDir, '" reset --hard FETCH_HEAD 2>&1']);
+                if s2 ~= 0
+                    error('git reset 失败: %s', strtrim(r2));
                 end
                 success = true;
             catch ME
