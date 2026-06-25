@@ -26,11 +26,11 @@ function T1corg(path, name, work, startname)
     system(Tc);
 
     % 5tt和gmwmSeed从T1空间warp到DWI空间
-    Tc = sprintf('mrtransform %s/5tt.mif -linear %s/T1_to_DWI_mrtrix.txt -template %s/mean_b0.nii.gz %s/5tt_in_dwi.mif -force', ...
+    Tc = sprintf('mrtransform %s/5tt.mif -linear %s/T1_to_DWI_mrtrix.txt -template %s/mean_b0.nii.gz %s/5tt_in_dwi.mif -interp nearest -force', ...
         output, output, b0_path, output);
     system(Tc);
 
-    Tc = sprintf('mrtransform %s/gmwmSeed.mif -linear %s/T1_to_DWI_mrtrix.txt -template %s/mean_b0.nii.gz %s/gmwmSeed_in_dwi.mif -force', ...
+    Tc = sprintf('mrtransform %s/gmwmSeed.mif -linear %s/T1_to_DWI_mrtrix.txt -template %s/mean_b0.nii.gz %s/gmwmSeed_in_dwi.mif -interp nearest -force', ...
         output, output, b0_path, output);
     system(Tc);
 
