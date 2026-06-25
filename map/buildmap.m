@@ -51,7 +51,10 @@ function buildmap(workPath, subFolder, currentPath,maskpath,sy,zero,len,rare,zb,
         output = '';
     end
 
-    mk = sprintf('mrconvert %s %s/mask.nii.gz -datatype int32 -force',maskpath,outputpath);
+    warppath = fullfile(workPath, 'dwi_coreg', subFolder);
+    b0_path = fullfile(workPath, 'pred_b0', subFolder);
+    mk = sprintf('mrtransform %s -linear %s/dwi_to_MNI_mrtrix.txt -inverse -target %s/mean_b0.nii.gz %s/mask.nii.gz -interp nearest -datatype int32 -force', ...
+        maskpath, warppath, b0_path, outputpath);
     system(mk)
 
     cmd = sprintf('tck2connectome %s %s %s %s %s %s/mask.nii.gz %s/BN.csv %s %s -force', ... 

@@ -47,7 +47,6 @@ classdef fod < matlab.apps.AppBase
         Label_2                   matlab.ui.control.Label
         find_Button               matlab.ui.control.Button
         start_Button              matlab.ui.control.Button
-        f2m_CheckBox              matlab.ui.control.CheckBox
         norm_CheckBox             matlab.ui.control.CheckBox
         fod_CheckBox              matlab.ui.control.CheckBox
         work_Button               matlab.ui.control.Button
@@ -120,7 +119,6 @@ classdef fod < matlab.apps.AppBase
             app.next_fiber_num_EditField.Value = p.next_fiber_num;
             app.fod_CheckBox.Value = p.fod;
             app.norm_CheckBox.Value = p.norm;
-            app.f2m_CheckBox.Value = p.f2m;
             if isfield(p, 'respAlgo')
                 buttons = app.resp_ButtonGroup.Children;
                 for i = 1:length(buttons)
@@ -199,7 +197,6 @@ classdef fod < matlab.apps.AppBase
             params.fod = app.fod_CheckBox.Value;
             params.fodAlgo = app.fod_ButtonGroup.SelectedObject.Text;
             params.norm = app.norm_CheckBox.Value;
-            params.f2m = app.f2m_CheckBox.Value;
             save_params('fod', 'fod', workPath, params);
             
             % 拼接完整路径
@@ -304,11 +301,6 @@ classdef fod < matlab.apps.AppBase
                     currentPath = normal(workPath, currentPath, subFolder, isMulti);
                 end
 
-                % 检测是否需要配准
-                if app.f2m_CheckBox.Value
-                    fodtoMNI(workPath, subFolder, currentPath, isMulti);
-                end
-
             end
             
             % 结束计时
@@ -339,12 +331,6 @@ classdef fod < matlab.apps.AppBase
         % Value changed function: norm_CheckBox
         function norm_CheckBoxValueChanged(app, event)
             value = app.norm_CheckBox.Value;
-            
-        end
-
-        % Value changed function: f2m_CheckBox
-        function f2m_CheckBoxValueChanged(app, event)
-            value = app.f2m_CheckBox.Value;
             
         end
 
@@ -666,12 +652,6 @@ classdef fod < matlab.apps.AppBase
             app.norm_CheckBox.ValueChangedFcn = createCallbackFcn(app, @norm_CheckBoxValueChanged, true);
             app.norm_CheckBox.Text = '强度标准化';
             app.norm_CheckBox.Position = [402 245 82 22];
-
-            % Create f2m_CheckBox
-            app.f2m_CheckBox = uicheckbox(app.UIFigure);
-            app.f2m_CheckBox.ValueChangedFcn = createCallbackFcn(app, @f2m_CheckBoxValueChanged, true);
-            app.f2m_CheckBox.Text = 'fod_to_MNI';
-            app.f2m_CheckBox.Position = [402 220 84 22];
 
             % Create start_Button
             app.start_Button = uibutton(app.UIFigure, 'push');

@@ -14,7 +14,6 @@ classdef dti < matlab.apps.AppBase
         find_Button     matlab.ui.control.Button
         start_Button    matlab.ui.control.Button
         cp_CheckBox     matlab.ui.control.CheckBox
-        tensorToT1_CheckBox matlab.ui.control.CheckBox
         cs_CheckBox     matlab.ui.control.CheckBox
         cl_CheckBox     matlab.ui.control.CheckBox
         adc_CheckBox    matlab.ui.control.CheckBox
@@ -54,7 +53,6 @@ classdef dti < matlab.apps.AppBase
             app.EditField.Value = p.folder;
             app.sub_ListBox.Items = strsplit(p.subjects, ', ');
             app.dt_CheckBox.Value = p.dt;
-            app.tensorToT1_CheckBox.Value = p.tensorToT1;
             app.fa_CheckBox.Value = p.fa;
             app.ad_CheckBox.Value = p.ad;
             app.rd_CheckBox.Value = p.rd;
@@ -99,7 +97,6 @@ classdef dti < matlab.apps.AppBase
             params.folder = app.EditField.Value;
             params.subjects = strjoin(app.sub_ListBox.Items, ', ');
             params.dt = app.dt_CheckBox.Value;
-            params.tensorToT1 = app.tensorToT1_CheckBox.Value;
             params.fa = app.fa_CheckBox.Value;
             params.ad = app.ad_CheckBox.Value;
             params.rd = app.rd_CheckBox.Value;
@@ -146,10 +143,6 @@ classdef dti < matlab.apps.AppBase
                 % 检查是否需要进行 dt 处理
                 if app.dt_CheckBox.Value
                     dt(subFolder, workPath, startname); % 调用dt函数
-                end
-
-                if app.tensorToT1_CheckBox.Value
-                    tensor2T1(subFolder, workPath, startname)
                 end
 
                 % 检查是否需要进行 dkt 处理
@@ -272,11 +265,6 @@ classdef dti < matlab.apps.AppBase
             
         end
 
-        % Value changed function: tensorToT1_CheckBox
-        function tensorToT1_CheckBoxValueChanged(app, event)
-            value = app.tensorToT1_CheckBox.Value;
-        end
-
         % Button pushed function: find_Button
         function find_ButtonPushed(app, event)
             % 获取工作路径和文件夹名称
@@ -392,12 +380,6 @@ classdef dti < matlab.apps.AppBase
             app.dt_CheckBox.Text = '生成弥散张量图';
             app.dt_CheckBox.Position = [30 211 106 22];
             app.dt_CheckBox.Value = true;
-
-             % Create tensorToT1_CheckBox
-            app.tensorToT1_CheckBox = uicheckbox(app.UIFigure);
-            app.tensorToT1_CheckBox.ValueChangedFcn = createCallbackFcn(app, @tensorToT1_CheckBoxValueChanged, true);
-            app.tensorToT1_CheckBox.Text = 'tensor_to_T1';
-            app.tensorToT1_CheckBox.Position = [150 211 106 22];
 
             % Create fa_CheckBox
             app.fa_CheckBox = uicheckbox(app.UIFigure);
