@@ -53,7 +53,7 @@ function buildmap(workPath, subFolder, currentPath,maskpath,sy,zero,len,rare,zb,
 
     warppath = fullfile(workPath, 'dwi_coreg', subFolder);
     b0_path = fullfile(workPath, 'pred_b0', subFolder);
-    mk = sprintf('mrtransform %s -linear %s/dwi_to_MNI_mrtrix.txt -inverse -target %s/mean_b0.nii.gz %s/mask.nii.gz -interp nearest -datatype int32 -force', ...
+    mk = sprintf('mrtransform %s -linear %s/dwi_to_MNI_mrtrix.txt -inverse -template %s/mean_b0.nii.gz %s/mask.nii.gz -interp nearest -datatype int32 -force', ...
         maskpath, warppath, b0_path, outputpath);
     system(mk)
 

@@ -41,7 +41,7 @@ function [newpath,fodfolder] = fiberbuild(workPath,subFolder,currentPath,startfl
         warppath = fullfile(workPath, 'dwi_coreg', subFolder);
         b0_path = fullfile(workPath, 'pred_b0', subFolder);
         mask_dwi = fullfile(outputpath, 'mask_in_dwi.nii.gz');
-        cmd = sprintf('mrtransform %s -linear %s/dwi_to_MNI_mrtrix.txt -inverse -target %s/mean_b0.nii.gz %s -interp nearest -datatype int32 -force', ...
+        cmd = sprintf('mrtransform %s -linear %s/dwi_to_MNI_mrtrix.txt -inverse -template %s/mean_b0.nii.gz %s -interp nearest -datatype int32 -force', ...
             mask, warppath, b0_path, mask_dwi);
         system(cmd);
         cmd = sprintf('tckgen -algorithm %s -act %s/T1_corg/%s/5tt_in_dwi.mif -backtrack -seed_image %s -step %f -angle %d -minlength %d -maxlength %d -cutoff %f -seeds %s -trials %d -select %s %s/%s %s/tracks.tck -force', ... 
@@ -62,7 +62,7 @@ function [newpath,fodfolder] = fiberbuild(workPath,subFolder,currentPath,startfl
             for i = 1:length(ROIDef)
                 [~, fname, fext] = fileparts(ROIDef{i});
                 roi_dwi = fullfile(outputpath, [fname '_in_dwi' fext]);
-                cmd = sprintf('mrtransform %s -linear %s/dwi_to_MNI_mrtrix.txt -inverse -target %s/mean_b0.nii.gz %s -interp nearest -datatype int32 -force', ...
+                cmd = sprintf('mrtransform %s -linear %s/dwi_to_MNI_mrtrix.txt -inverse -template %s/mean_b0.nii.gz %s -interp nearest -datatype int32 -force', ...
                     ROIDef{i}, warppath, b0_path, roi_dwi);
                 system(cmd);
                 ROIDef_warped{i} = roi_dwi;
