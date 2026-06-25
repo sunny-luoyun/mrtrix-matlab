@@ -10,7 +10,8 @@ function newPath = sift(workPath, subFolder, currentPath, startfloder, fodfolder
 
     cmd = sprintf('tcksift -act %s/T1_corg/%s/5tt_in_dwi.mif -term_number %s %s/tracks.tck %s/%s %s/tracks_sift.tck -force', ...
         workPath, subFolder, decnum, currentPath, fod, fodfile, currentPath);
-    system(cmd);
+    [status, ~] = system(cmd);
+    assert(status == 0, 'tcksift 执行失败: %s', cmd);
     
     newPath = currentPath;
 

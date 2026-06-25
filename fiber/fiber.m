@@ -269,11 +269,11 @@ classdef fiber < matlab.apps.AppBase
             
             % 并行处理 简化sift
             if app.sift_CheckBox.Value
+                decnum = app.decr_nunEditField.Value;
                 parfor i = 1:length(siftPaths)
                     currentPath = siftPaths{i}{1};
                     startfloder = siftPaths{i}{2};
                     fodfolder = siftPaths{i}{3};
-                    decnum = app.decr_nunEditField.Value;
                     currentPath = sift(workPath, subFolderNames{i}, currentPath, startfloder, fodfolder, decnum);
                     % 更新路径
                     siftPaths{i} = {currentPath, startfloder, fodfolder};

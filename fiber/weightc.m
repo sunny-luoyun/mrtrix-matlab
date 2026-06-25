@@ -10,7 +10,8 @@ function newPath = weightc(workPath, subFolder, currentPath, startfloder, fodfol
 
     cmd = sprintf('tcksift2 %s/tracks.tck %s/%s %s/sift_weight.txt -force', ...
         currentPath, fod, fodfile, currentPath);
-    system(cmd);
+    [status, ~] = system(cmd);
+    assert(status == 0, 'tcksift2 执行失败: %s', cmd);
     
     newPath = currentPath;
 
