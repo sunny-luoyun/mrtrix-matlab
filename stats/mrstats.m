@@ -234,6 +234,37 @@ classdef mrstats < matlab.apps.AppBase
             mrstats_run(app);
         end
 
+        function actualMask = resolveMaskSpace(app, maskPath, firstImagePath)
+            [~, r1] = system(sprintf('mrinfo -size "%s"', maskPath));
+            [~, r2] = system(sprintf('mrinfo -size "%s"', firstImagePath));
+            if strcmp(strtrim(r1), strtrim(r2))
+                actualMask = maskPath;
+                return;
+            end
+
+            inDir = strtrim(app.mrstats_folder_EditField.Value);
+            [parentPath, subject] = fileparts(inDir);
+            workPath = fileparts(parentPath);
+            transformPath = fullfile(workPath, 'dwi_coreg', subject, 'dwi_to_MNI_mrtrix.txt');
+
+            if ~isfile(transformPath)
+                uialert(app.UIFigure, ...
+                    sprintf('Mask 与图像空间不匹配。\n自动查找变换文件失败：\n%s\n\n请确保：\n1. 已执行 dwi_coreg 配准步骤\n2. 或提供与图像同空间的 mask', transformPath), ...
+                    '空间不匹配');
+                error('mrstats:spaceMismatch', '空间不匹配');
+            end
+
+            outDir = strtrim(app.mrstats_output_EditField.Value);
+            warpedMask = fullfile(outDir, 'mask_warped_to_dwi.nii.gz');
+            cmd = sprintf('mrtransform "%s" -linear "%s" -inverse -template "%s" "%s" -interp nearest -datatype int32 -force', ...
+                maskPath, transformPath, firstImagePath, warpedMask);
+            [status, ~] = system(cmd);
+            assert(status == 0, 'mrstats:maskWarpFailed', 'Mask 配准失败');
+
+            actualMask = warpedMask;
+            fprintf('Mask 已自动配准到个体空间：%s\n', warpedMask);
+        end
+
         function mrstats_run(app)
             outDir = strtrim(app.mrstats_output_EditField.Value);
             if isempty(outDir) || ~isfolder(outDir)
@@ -264,7 +295,9 @@ classdef mrstats < matlab.apps.AppBase
                     uialert(app.UIFigure, '请选择或生成有效的ROI mask', 'mask缺失');
                     return;
                 end
-                maskOpt = [' -mask "' app.currentMaskPath '"'];
+                firstFile = fullfile(inDir, app.fileList{1});
+                actualMask = app.resolveMaskSpace(app.currentMaskPath, firstFile);
+                maskOpt = [' -mask "' actualMask '"'];
             end
 
             opts = '';

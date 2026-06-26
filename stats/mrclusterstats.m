@@ -467,6 +467,64 @@ classdef mrclusterstats < matlab.apps.AppBase
             mrcluster_run(app);
         end
 
+        function [warpedFileList, warpedMaskFile] = warpInputsToMNI(app, fileList, maskFile, outDir)
+            scriptPath = mfilename('fullpath');
+            scriptDir = fileparts(fileparts(scriptPath));
+            mniTemplate = fullfile(scriptDir, 'Templates', 'MNI152.nii.gz');
+            if ~isfile(mniTemplate)
+                uialert(app.UIFigure, sprintf('MNI 模板未找到：%s', mniTemplate), '模板缺失');
+                error('mrclusterstats:templateMissing', 'MNI 模板缺失');
+            end
+
+            [~, mniSizeStr] = system(sprintf('mrinfo -size "%s"', mniTemplate));
+            mniSizeStr = strtrim(mniSizeStr);
+
+            [~, maskSizeStr] = system(sprintf('mrinfo -size "%s"', maskFile));
+            maskSizeStr = strtrim(maskSizeStr);
+            if ~strcmp(maskSizeStr, mniSizeStr)
+                uialert(app.UIFigure, ...
+                    sprintf('Mask 尺寸与 MNI 模板不匹配。\n请提供 MNI 空间的 mask。\n\nMask 尺寸: %s\nMNI 模板尺寸: %s', ...
+                    maskSizeStr, mniSizeStr), '空间不匹配');
+                error('mrclusterstats:maskSpaceMismatch', 'Mask 尺寸与 MNI 不匹配');
+            end
+            warpedMaskFile = maskFile;
+
+            warpedDir = fullfile(outDir, 'temp_warped');
+            mkdir(warpedDir);
+            warpedFileList = {};
+
+            for i = 1:length(fileList)
+                f = fileList{i};
+                [~, fSizeStr] = system(sprintf('mrinfo -size "%s"', f));
+                fSizeStr = strtrim(fSizeStr);
+
+                if strcmp(fSizeStr, mniSizeStr)
+                    warpedFileList{end+1} = f;
+                else
+                    [fDir, fBase, fExt] = fileparts(f);
+                    [parentDir, subject] = fileparts(fDir);
+                    workPath = fileparts(parentDir);
+                    transformPath = fullfile(workPath, 'dwi_coreg', subject, 'dwi_to_MNI_mrtrix.txt');
+
+                    if ~isfile(transformPath)
+                        uialert(app.UIFigure, ...
+                            sprintf('被试 %s 的配准变换文件未找到：\n%s\n请确认已执行 dwi_coreg 配准步骤', subject, transformPath), ...
+                            '变换缺失');
+                        error('mrclusterstats:transformNotFound', '变换文件缺失');
+                    end
+
+                    warpedFile = fullfile(warpedDir, [fBase fExt]);
+                    cmd = sprintf('mrtransform "%s" -linear "%s" -template "%s" "%s" -interp nearest -datatype int32 -force', ...
+                        f, transformPath, mniTemplate, warpedFile);
+                    [status, ~] = system(cmd);
+                    assert(status == 0, 'mrclusterstats:warpFailed', '被试 %s warp 到 MNI 失败', subject);
+
+                    warpedFileList{end+1} = warpedFile;
+                    fprintf('已配准: %s → %s\n', f, warpedFile);
+                end
+            end
+        end
+
         function mrcluster_run(app)
             outDir = strtrim(app.mrcluster_output_EditField.Value);
             if isempty(outDir) || ~isfolder(outDir)
@@ -488,13 +546,14 @@ classdef mrclusterstats < matlab.apps.AppBase
                 return;
             end
 
+            [warpedFileList, warpedMaskFile] = app.warpInputsToMNI(app.fileList, maskFile, outDir);
             inputListFile = fullfile(outDir, [prefix '_inputlist.txt']);
             fid = fopen(inputListFile, 'w');
-            for i = 1:length(app.fileList)
-                rel = app.makeRelativePath(app.fileList{i}, outDir);
-                fprintf(fid, '%s\n', rel);
+            for i = 1:length(warpedFileList)
+                fprintf(fid, '%s\n', warpedFileList{i});
             end
             fclose(fid);
+            maskFile = warpedMaskFile;
 
             ext = strtrim(app.mrcluster_ext_EditField.Value);
             if isempty(ext), ext = '.nii'; end
