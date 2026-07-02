@@ -156,6 +156,20 @@ def require_dir(path, description=''):
     return path
 
 
+def _find_project_root():
+    """从当前文件位置向上搜索，找到包含 setup.py 的目录"""
+    import inspect
+    path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    for _ in range(10):
+        if os.path.isfile(os.path.join(path, 'setup.py')):
+            return path
+        parent = os.path.dirname(path)
+        if parent == path:
+            break
+        path = parent
+    return None
+
+
 def mkdir_p(path, dry=False):
     if dry:
         print(f"[DRY-RUN] mkdir -p {path}")

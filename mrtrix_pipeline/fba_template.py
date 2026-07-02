@@ -103,16 +103,28 @@ def register(work_path, nl_scale='0.5,0.75,1.0', nl_niter='5,5,15',
         )
         run_cmd(cmd, dry)
 
-    # mask 交集
+    # mask 交集（MATLAB step9: 先 warp 到模板空间，再取 min）
     print("\n[INFO] 计算 mask 交集...")
-    inter_mask = os.path.join(template_dir, 'mask_inter.mif')
+    for sub in sub_list:
+        sub_dir = os.path.join(fba_sub_dir, sub)
+        warp_file = os.path.join(sub_dir, 'subject2template_warp.mif')
+        mask_file = os.path.join(sub_dir, 'dwi_mask_upsampled.mif')
+        if not os.path.isfile(mask_file):
+            mask_file = os.path.join(sub_dir, 'dwi_mask.mif')
+        if os.path.isfile(warp_file) and os.path.isfile(mask_file):
+            warped_mask = os.path.join(sub_dir, 'dwi_mask_in_template_space.mif')
+            run_cmd(
+                f'mrtransform {mask_file} -warp {warp_file} '
+                f'-interp nearest -datatype bit {warped_mask} -force', dry
+            )
+
+    template_mask = os.path.join(template_dir, 'template_mask.mif')
     mask_files = []
     for sub in sub_list:
-        m = os.path.join(fba_sub_dir, sub, 'dwi_mask_upsampled.mif')
+        m = os.path.join(fba_sub_dir, sub, 'dwi_mask_in_template_space.mif')
         if os.path.isfile(m):
             mask_files.append(m)
     if mask_files:
-        cmd = f'mrmath {" ".join(mask_files)} min {inter_mask} -force'
-        run_cmd(cmd, dry)
+        run_cmd(f'mrmath {" ".join(mask_files)} min {template_mask} -datatype bit -force', dry)
 
     print("[INFO] 配准与 mask 交集完成")
