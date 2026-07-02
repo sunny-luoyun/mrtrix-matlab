@@ -48,13 +48,13 @@ def fiberbuild_step(sub_dir, sub_name, work_dir, startname,
     cmd += f' -step {step_size} -angle {angle} -minlength {min_len} -maxlength {max_len}'
     cmd += f' -cutoff {fod_cutoff} -trials {max_tries} -seeds {seeds} -select {fiber_num}'
 
-    # ACT + backtrack + gmwmi（MATLAB 固定参数）
     act = os.path.join(work_dir, 'T1_corg', sub_name, '5tt_in_dwi.mif')
     if os.path.isfile(act):
         cmd += f' -act {act} -backtrack -seed_gmwmi {act}'
 
     if mode == 'whole_brain':
-        pass
+        if not os.path.isfile(act):
+            cmd += f' -seed_dynamic {fod}'
     elif mode == 'seed':
         cmd += f' -seed_sphere {roi}'
     elif mode == 'mask':

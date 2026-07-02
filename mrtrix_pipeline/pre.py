@@ -105,45 +105,39 @@ def t1corg_step(current_path, sub_name, work_dir, startname):
     cmds = []
     out_dir = mkdir_p(os.path.join(work_dir, 'T1_corg', sub_name))
     t1_dir = os.path.join(work_dir, 'T1mif', sub_name)
-    t1_nii = os.path.join(t1_dir, 'T1.nii.gz')
     t1_mif = os.path.join(t1_dir, 'T1.mif')
-    if not os.path.isfile(t1_nii) and os.path.isfile(t1_mif):
-        cmds.append(f'mrconvert {t1_mif} {t1_nii} -force')
     b0_path = os.path.join(work_dir, 'pred_b0', sub_name)
     mean_b0_nii = os.path.join(b0_path, 'mean_b0.nii.gz')
-    if os.path.isfile(t1_nii):
-        cmds.append(f'5ttgen fsl {t1_nii} {os.path.join(out_dir, "5tt.mif")} -force')
+    t1_nii_path = os.path.join(t1_dir, 'T1.nii.gz')
+    if not os.path.isfile(t1_nii_path) and os.path.isfile(t1_mif):
+        cmds.append(f'mrconvert {t1_mif} {t1_nii_path} -force')
+    cmds.append(f'5ttgen fsl {t1_nii_path} {os.path.join(out_dir, "5tt.mif")} -force')
     five_tt = os.path.join(out_dir, '5tt.mif')
-    if os.path.isfile(five_tt):
-        cmds.append(f'5tt2gmwmi {five_tt} {os.path.join(out_dir, "gmwmSeed.mif")} -force')
-    if os.path.isfile(t1_nii) and os.path.isfile(mean_b0_nii):
-        cmds.append(
-            f'flirt -in {t1_nii} -ref {mean_b0_nii} -dof 12 '
-            f'-out {os.path.join(out_dir, "T1_in_DWI.nii.gz")} '
-            f'-omat {os.path.join(out_dir, "T1_to_DWI_fsl.mat")}'
-        )
+    cmds.append(f'5tt2gmwmi {five_tt} {os.path.join(out_dir, "gmwmSeed.mif")} -force')
+    cmds.append(
+        f'flirt -in {t1_nii_path} -ref {mean_b0_nii} -dof 12 '
+        f'-out {os.path.join(out_dir, "T1_in_DWI.nii.gz")} '
+        f'-omat {os.path.join(out_dir, "T1_to_DWI_fsl.mat")}'
+    )
     t1_fsl_mat = os.path.join(out_dir, 'T1_to_DWI_fsl.mat')
     t1_txt = os.path.join(out_dir, 'T1_to_DWI_mrtrix.txt')
-    if os.path.isfile(t1_fsl_mat) and os.path.isfile(t1_nii) and os.path.isfile(mean_b0_nii):
-        cmds.append(
-            f'transformconvert {t1_fsl_mat} {t1_nii} {mean_b0_nii} '
-            f'flirt_import {t1_txt} -force'
-        )
+    cmds.append(
+        f'transformconvert {t1_fsl_mat} {t1_nii_path} {mean_b0_nii} '
+        f'flirt_import {t1_txt} -force'
+    )
     five_tt_in_dwi = os.path.join(out_dir, '5tt_in_dwi.mif')
-    if os.path.isfile(t1_txt) and os.path.isfile(five_tt) and os.path.isfile(mean_b0_nii):
-        cmds.append(
-            f'mrtransform {five_tt} -linear {t1_txt} '
-            f'-template {mean_b0_nii} {five_tt_in_dwi} '
-            f'-interp nearest -force'
-        )
-    gmwm_in_dwi = os.path.join(out_dir, 'gmwmSeed_in_dwi.mif')
+    cmds.append(
+        f'mrtransform {five_tt} -linear {t1_txt} '
+        f'-template {mean_b0_nii} {five_tt_in_dwi} '
+        f'-interp nearest -force'
+    )
     gmwm = os.path.join(out_dir, 'gmwmSeed.mif')
-    if os.path.isfile(t1_txt) and os.path.isfile(gmwm) and os.path.isfile(mean_b0_nii):
-        cmds.append(
-            f'mrtransform {gmwm} -linear {t1_txt} '
-            f'-template {mean_b0_nii} {gmwm_in_dwi} '
-            f'-interp nearest -force'
-        )
+    gmwm_in_dwi = os.path.join(out_dir, 'gmwmSeed_in_dwi.mif')
+    cmds.append(
+        f'mrtransform {gmwm} -linear {t1_txt} '
+        f'-template {mean_b0_nii} {gmwm_in_dwi} '
+        f'-interp nearest -force'
+    )
     return out_dir, cmds
 
 
@@ -184,29 +178,26 @@ def dwi_to_mni_step(current_path, sub_name, work_dir, startname):
     dwi_file = os.path.join(current_path, 'dwi.mif')
     mean_b0_mif = os.path.join(b0_dir, 'mean_b0.mif')
     mean_b0_nii = os.path.join(b0_dir, 'mean_b0.nii.gz')
-    if os.path.isfile(dwi_file):
-        cmds.append(
-            f'dwiextract {dwi_file} - -bzero | '
-            f'mrmath - mean {mean_b0_mif} -axis 3 -force'
-        )
-        cmds.append(f'mrconvert {mean_b0_mif} {mean_b0_nii} -force')
     root = _find_project_root()
     template_path = os.path.join(root, 'Templates', 'MNI152.nii.gz') if root else ''
     if not os.path.isfile(template_path):
         print(f"[WARN] MNI 模板不存在: {template_path}")
         return cmds
-    if os.path.isfile(mean_b0_nii):
-        cmds.append(
-            f'flirt -in {mean_b0_nii} -ref {template_path} -dof 6 '
-            f'-out {os.path.join(out_dir, "dwi_coreg.nii.gz")} '
-            f'-omat {os.path.join(out_dir, "dwi_to_MNI_fsl.mat")}'
-        )
+    cmds.append(
+        f'dwiextract {dwi_file} - -bzero | '
+        f'mrmath - mean {mean_b0_mif} -axis 3 -force'
+    )
+    cmds.append(f'mrconvert {mean_b0_mif} {mean_b0_nii} -force')
+    cmds.append(
+        f'flirt -in {mean_b0_nii} -ref {template_path} -dof 6 '
+        f'-out {os.path.join(out_dir, "dwi_coreg.nii.gz")} '
+        f'-omat {os.path.join(out_dir, "dwi_to_MNI_fsl.mat")}'
+    )
     fsl_mat = os.path.join(out_dir, 'dwi_to_MNI_fsl.mat')
-    if os.path.isfile(fsl_mat) and os.path.isfile(mean_b0_nii):
-        cmds.append(
-            f'transformconvert {fsl_mat} {mean_b0_nii} {template_path} '
-            f'flirt_import {os.path.join(out_dir, "dwi_to_MNI_mrtrix.txt")} -force'
-        )
+    cmds.append(
+        f'transformconvert {fsl_mat} {mean_b0_nii} {template_path} '
+        f'flirt_import {os.path.join(out_dir, "dwi_to_MNI_mrtrix.txt")} -force'
+    )
     return cmds
 
 
