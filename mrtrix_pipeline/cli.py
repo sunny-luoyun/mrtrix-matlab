@@ -11,6 +11,7 @@ from . import pre, dti, fod, fiber
 from . import fba_organize, fba_subject, fba_template, fba_fixel, fba_stats
 from . import map as map_module
 from . import stats as stats_module
+from . import update as update_module
 
 
 # ── 全局上下文 ──────────────────────────────────────────────────
@@ -320,6 +321,51 @@ def cmd_connectomestats(ctx, input, design, contrast, nshuffles):
 def cmd_tckstats(ctx, input, output, dump):
     """纤维指标数值提取"""
     stats_module.run_tckstats(input, output, dump, dry=DRY(ctx))
+
+
+# ═══════════════════════════════════════════════════════════════
+# update: 检查更新 / 拉取最新代码
+# ═══════════════════════════════════════════════════════════════
+
+@cli.command('update')
+@click.option('--check', is_flag=True, help='仅检查更新，不拉取')
+@click.option('--pull', is_flag=True, help='检查并拉取最新代码')
+def cmd_update(check, pull):
+    """检查项目更新或拉取最新代码
+
+    对比本地 commit 与 Gitee/GitHub 远程最新 commit，
+    可选择直接 git pull 更新。
+    """
+    if not check and not pull:
+        check = True
+
+    local, remote, source, has_update = update_module.check_update()
+
+    if local:
+        click.echo(f"本地版本:  {local[:7]}")
+    else:
+        click.echo("本地版本:  未知（非 git 仓库）")
+
+    if remote:
+        src_name = {'gitee': 'Gitee', 'github': 'GitHub'}.get(source, source)
+        click.echo(f"远程版本:  {remote[:7]} ({src_name})")
+    else:
+        click.echo("远程版本:  获取失败（检查网络）")
+
+    if has_update:
+        click.echo("\n→ 发现新版本！")
+    else:
+        click.echo("\n→ 已是最新版本")
+
+    if pull and has_update:
+        click.echo("\n正在拉取更新...")
+        ok, result = update_module.do_pull()
+        if ok:
+            click.echo("✓ 更新成功")
+            click.echo(f"  请重新安装: pip install -e {result}")
+            click.echo("  然后重启 mrtrix-cli")
+        else:
+            click.echo(f"✗ 更新失败: {result}")
 
 
 # ═══════════════════════════════════════════════════════════════
