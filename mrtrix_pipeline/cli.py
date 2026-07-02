@@ -88,10 +88,10 @@ def workdir_option(f):
               help='[默认开启] dwibiascorrect ants B1 场不均匀性校正。输出到 bias/<sub>/')
 @click.option('--t1corg/--no-t1corg', default=True,
               help='[默认开启] 5ttgen fsl T1 结构像五组织分割。输出到 T1seg/<sub>/')
-@click.option('--t1-to-mni/--no-t1-to-mni', default=False,
-              help='[默认关闭] 将 T1 配准到 MNI 标准空间 (mrregister)')
-@click.option('--dwi-to-mni/--no-dwi-to-mni', default=False,
-              help='[默认关闭] 将 DWI 配准到 MNI 标准空间 (mrregister)。输出到 dwiMNI/<sub>/')
+@click.option('--t1-to-mni/--no-t1-to-mni', default=True,
+              help='[默认开启] 将 T1 配准到 MNI 标准空间 (mrregister)')
+@click.option('--dwi-to-mni/--no-dwi-to-mni', default=True,
+              help='[默认开启] 将 DWI 配准到 MNI 标准空间 (mrregister)。输出到 dwiMNI/<sub>/')
 @click.option('--mask/--no-mask', default=True,
               help='[默认开启] dwi2mask 提取脑 mask，在当前步骤目录下生成 dwi_mask.mif')
 @click.pass_context
