@@ -50,11 +50,10 @@ def fiberbuild_step(sub_dir, sub_name, work_dir, startname,
 
     act = os.path.join(work_dir, 'T1_corg', sub_name, '5tt_in_dwi.mif')
     if os.path.isfile(act):
-        cmd += f' -act {act} -backtrack -seed_gmwmi {act}'
+        cmd += f' -act {act} -backtrack'
 
     if mode == 'whole_brain':
-        if not os.path.isfile(act):
-            cmd += f' -seed_dynamic {fod}'
+        cmd += f' -seed_dynamic {fod}'
     elif mode == 'seed':
         cmd += f' -seed_sphere {roi}'
     elif mode == 'mask':
