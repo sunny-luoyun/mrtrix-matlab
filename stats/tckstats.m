@@ -34,6 +34,19 @@ classdef tckstats < matlab.apps.AppBase
         fileList             cell
         fileFullPaths        cell
         import_Button        matlab.ui.control.Button
+
+        tckstats_scope_ButtonGroup       matlab.ui.container.ButtonGroup
+        tckstats_wholeBrain_Radio        matlab.ui.control.RadioButton
+        tckstats_roi_Radio               matlab.ui.control.RadioButton
+
+        tckstats_roi_Panel               matlab.ui.container.Panel
+        tckstats_roi_list_ListBox        matlab.ui.control.ListBox
+        tckstats_roi_add_Button          matlab.ui.control.Button
+        tckstats_roi_del_Button          matlab.ui.control.Button
+        tckstats_ends_only_CheckBox      matlab.ui.control.CheckBox
+        tckstats_ordered_CheckBox        matlab.ui.control.CheckBox
+
+        roiMasks             cell
     end
 
     methods (Access = private)
@@ -111,6 +124,53 @@ classdef tckstats < matlab.apps.AppBase
             app.tckstats_output_EditField.Value = p;
         end
 
+        function scope_ButtonGroupSelectionChanged(app, ~)
+            if app.tckstats_roi_Radio.Value
+                app.tckstats_roi_Panel.Visible = 'on';
+                app.tckstats_weight_CheckBox.Enable = 'off';
+                app.tckstats_weight_CheckBox.Value = false;
+            else
+                app.tckstats_roi_Panel.Visible = 'off';
+                app.tckstats_weight_CheckBox.Enable = 'on';
+            end
+        end
+
+        function roi_add_ButtonPushed(app, ~)
+            [f, p] = uigetfile({'*.nii;*.nii.gz;*.mif', 'ROI mask 文件 (*.nii,*.nii.gz,*.mif)'});
+            if isequal(f, 0), return; end
+            figure(app.UIFigure);
+            app.roiMasks{end+1} = fullfile(p, f);
+            app.refreshROIList();
+        end
+
+        function roi_del_ButtonPushed(app, ~)
+            idx = app.tckstats_roi_list_ListBox.Value;
+            if isempty(idx), return; end
+            if isequal(idx, 1) && length(app.roiMasks) == 0
+                return;
+            end
+            app.roiMasks(idx) = [];
+            app.refreshROIList();
+        end
+
+        function refreshROIList(app)
+            if isempty(app.roiMasks)
+                app.tckstats_roi_list_ListBox.Items = {'(无 mask，请添加)'};
+                app.tckstats_roi_list_ListBox.Value = 1;
+                app.tckstats_roi_list_ListBox.ItemsData = 1;
+            else
+                n = length(app.roiMasks);
+                items = cell(1, n);
+                for k = 1:n
+                    [~, name, ext] = fileparts(app.roiMasks{k});
+                    items{k} = sprintf('%d: %s%s', k, name, ext);
+                end
+                app.tckstats_roi_list_ListBox.Items = items;
+                app.tckstats_roi_list_ListBox.ItemsData = 1:n;
+                app.tckstats_roi_list_ListBox.Value = [];
+            end
+        end
+
         function import_ButtonPushed(app, ~)
             [file, path] = uigetfile('*.mat', '选择参数文件');
             if isequal(file, 0), return; end
@@ -129,6 +189,15 @@ classdef tckstats < matlab.apps.AppBase
             app.tckstats_dump_CheckBox.Value = p.dump;
             app.tckstats_dump_EditField.Value = p.dumpDir;
             app.tckstats_weight_CheckBox.Value = p.weight;
+            if isfield(p, 'scope')
+                app.tckstats_wholeBrain_Radio.Value = strcmp(p.scope, 'wholeBrain');
+                app.tckstats_roi_Radio.Value = strcmp(p.scope, 'roi');
+            end
+            if isfield(p, 'roiMasks'),  app.roiMasks = p.roiMasks;  end
+            if isfield(p, 'endsOnly'),  app.tckstats_ends_only_CheckBox.Value = p.endsOnly; end
+            if isfield(p, 'ordered'),   app.tckstats_ordered_CheckBox.Value = p.ordered; end
+            app.scope_ButtonGroupSelectionChanged();
+            app.refreshROIList();
         end
 
         function start_ButtonPushed(app, ~)
@@ -146,6 +215,11 @@ classdef tckstats < matlab.apps.AppBase
             params.dump = app.tckstats_dump_CheckBox.Value;
             params.dumpDir = app.tckstats_dump_EditField.Value;
             params.weight = app.tckstats_weight_CheckBox.Value;
+            params.scope = 'wholeBrain';
+            if app.tckstats_roi_Radio.Value, params.scope = 'roi'; end
+            params.roiMasks = app.roiMasks;
+            params.endsOnly = app.tckstats_ends_only_CheckBox.Value;
+            params.ordered = app.tckstats_ordered_CheckBox.Value;
             save_params('stats', 'tckstats', app.tckstats_output_EditField.Value, params);
             tckstats_run(app);
         end
@@ -161,6 +235,8 @@ classdef tckstats < matlab.apps.AppBase
                 uialert(app.UIFigure, '请先检索纤维文件夹', '输入缺失');
                 return;
             end
+
+            useROI = app.tckstats_roi_Radio.Value && ~isempty(app.roiMasks);
 
             fields = {};
             if app.tckstats_mean_CheckBox.Value,   fields{end+1} = 'mean';   end
@@ -209,37 +285,99 @@ classdef tckstats < matlab.apps.AppBase
             for i = 1:length(app.fileList)
                 relPath = app.fileList{i};
                 fullPath = app.fileFullPaths{i};
-                [tckDir, tckName, ~] = fileparts(fullPath);
+                [tckDir, ~, ~] = fileparts(fullPath);
                 baseName = strrep(relPath, filesep, '_');
                 baseName = strrep(baseName, '.tck', '');
 
                 app.tckstats_status_Label.Text = sprintf('处理中: %s (%d/%d)', relPath, i, length(app.fileList));
                 drawnow;
 
+                % === ROI 筛选 ===
+                if useROI
+                    [fiberDir, subjectName] = fileparts(tckDir);
+                    workPath = fileparts(fiberDir);
+
+                    refImage = fullfile(workPath, 'pred_b0', subjectName, 'mean_b0.nii.gz');
+                    if ~isfile(refImage)
+                        uialert(app.UIFigure, ...
+                            sprintf('自动查找参考图像失败：\n%s\n\n请确保已执行 DWI 预处理（pred_b0 步骤）', refImage), ...
+                            '参考图像缺失');
+                        app.start_Button.Enable = 'on';
+                        return;
+                    end
+
+                    transformPath = fullfile(workPath, 'dwi_coreg', subjectName, 'dwi_to_MNI_mrtrix.txt');
+
+                    subjectTag = strrep(relPath, filesep, '_');
+                    subjectTag = strrep(subjectTag, '.tck', '');
+                    warpedMasks = {};
+                    warpOk = true;
+                    for m = 1:length(app.roiMasks)
+                        [warped, ok, errMsg] = app.warpMask(app.roiMasks{m}, refImage, transformPath, subjectTag, outDir);
+                        if ~ok
+                            fprintf(2, '\n=== 配准错误 ===\n%s\n', errMsg);
+                            uialert(app.UIFigure, 'mask 配准失败，详情请查看 MATLAB 命令行窗口', '配准错误');
+                            warpOk = false;
+                            break;
+                        end
+                        warpedMasks{m} = warped;
+                    end
+                    if ~warpOk
+                        app.start_Button.Enable = 'on';
+                        return;
+                    end
+
+                    filteredName = ['filtered_' subjectTag '.tck'];
+                    filteredPath = fullfile(outDir, filteredName);
+
+                    incOpt = '';
+                    for m = 1:length(warpedMasks)
+                        incOpt = [incOpt ' -include "' warpedMasks{m} '"'];
+                    end
+                    if app.tckstats_ordered_CheckBox.Value
+                        incOpt = strrep(incOpt, '-include', '-include_ordered');
+                    end
+                    endsOpt = '';
+                    if app.tckstats_ends_only_CheckBox.Value
+                        endsOpt = ' -ends_only';
+                    end
+
+                    tckeditCmd = sprintf('tckedit "%s" "%s"%s%s -force', fullPath, filteredPath, incOpt, endsOpt);
+                    app.tckstats_status_Label.Text = sprintf('筛选纤维: %s', relPath);
+                    drawnow;
+                    [status, ~] = system(tckeditCmd);
+                    if status ~= 0
+                        uialert(app.UIFigure, sprintf('tckedit 筛选失败: %s', relPath), '筛选错误');
+                        app.start_Button.Enable = 'on';
+                        return;
+                    end
+                    targetPath = filteredPath;
+                    resultLines{end+1} = sprintf('[%d/%d] %s (ROI 筛选)', i, length(app.fileList), relPath);
+                else
+                    targetPath = fullPath;
+                end
+
                 weightOpt = '';
-                if useWeight
+                if ~useROI && useWeight
                     weightPath = fullfile(tckDir, 'sift_weight.txt');
                     if exist(weightPath, 'file')
                         weightOpt = [' -tck_weights_in "' weightPath '"'];
                     end
                 end
 
-                % 第1次调用：只获取统计值（无 -histogram / -dump，确保 stdout 干净）
-                cmd = sprintf('tckstats "%s"%s%s', fullPath, fieldOpt, weightOpt);
+                cmd = sprintf('tckstats "%s"%s%s', targetPath, fieldOpt, weightOpt);
                 [~, result] = system(cmd);
                 result = strtrim(result);
 
-                % 第2次调用：输出直方图（如需）
                 if useHist
                     histFile = fullfile(histDir, [baseName '_hist.txt']);
-                    histCmd = sprintf('tckstats "%s"%s -histogram "%s"', fullPath, weightOpt, histFile);
+                    histCmd = sprintf('tckstats "%s"%s -histogram "%s"', targetPath, weightOpt, histFile);
                     system(histCmd);
                 end
 
-                % 第3次调用：导出纤维长度（如需）
                 if useDump
                     dumpFile = fullfile(dumpDir, [baseName '_lengths.txt']);
-                    dumpCmd = sprintf('tckstats "%s"%s -dump "%s"', fullPath, weightOpt, dumpFile);
+                    dumpCmd = sprintf('tckstats "%s"%s -dump "%s"', targetPath, weightOpt, dumpFile);
                     system(dumpCmd);
                 end
 
@@ -266,11 +404,17 @@ classdef tckstats < matlab.apps.AppBase
                 fprintf(fid, '\n');
                 fclose(fid);
 
-                lineStr = sprintf('[%d/%d] %s', i, length(app.fileList), relPath);
-                for j = 1:min(length(vals), length(fields))
-                    lineStr = [lineStr sprintf(' | %s: %s', fields{j}, vals{j})];
+                if ~useROI
+                    lineStr = sprintf('[%d/%d] %s', i, length(app.fileList), relPath);
+                    for j = 1:min(length(vals), length(fields))
+                        lineStr = [lineStr sprintf(' | %s: %s', fields{j}, vals{j})];
+                    end
+                    resultLines{end+1} = lineStr;
+                else
+                    for j = 1:min(length(vals), length(fields))
+                        resultLines{end} = [resultLines{end} sprintf(' | %s: %s', fields{j}, vals{j})];
+                    end
                 end
-                resultLines{end+1} = lineStr;
                 app.tckstats_result_TextArea.Value = strjoin(resultLines, newline);
             end
 
@@ -290,6 +434,40 @@ classdef tckstats < matlab.apps.AppBase
         end
     end
 
+    methods (Access = private, Static)
+
+        function [warpedMask, ok, errMsg] = warpMask(maskPath, refPath, transformPath, subjectTag, outDir)
+            warpedMask = maskPath;
+            ok = true;
+            errMsg = '';
+            [~, r1] = system(sprintf('mrinfo -size "%s"', maskPath));
+            [~, r2] = system(sprintf('mrinfo -size "%s"', refPath));
+            if strcmp(strtrim(r1), strtrim(r2))
+                return;
+            end
+            if ~isfile(transformPath)
+                errMsg = sprintf('Mask 配准失败，未找到变换文件：\n%s\n\n请确保已执行 dwi_coreg，或使用与 DWI 同空间的 mask。', transformPath);
+                ok = false;
+                return;
+            end
+            [~, fname, fext] = fileparts(maskPath);
+            if strcmp(fext, '.gz')
+                [~, fname] = fileparts(fname);
+                fext = '.nii.gz';
+            end
+            warpedMask = fullfile(outDir, [fname '_' subjectTag fext]);
+            cmd = sprintf('mrtransform "%s" -linear "%s" -inverse -template "%s" "%s" -interp nearest -datatype int32 -force', ...
+                maskPath, transformPath, refPath, warpedMask);
+            [status, result] = system(cmd);
+            if status ~= 0
+                errMsg = sprintf('Mask 配准失败：mrtransform 返回错误 (exit=%d)\n%s\n命令:\n%s', status, strtrim(result), cmd);
+                ok = false;
+                return;
+            end
+            fprintf('Mask 已配准到 %s: %s\n', subjectTag, warpedMask);
+        end
+    end
+
     methods (Access = private)
 
         function createComponents(app)
@@ -298,39 +476,72 @@ classdef tckstats < matlab.apps.AppBase
             screen_width = screen_size(3);
             screen_height = screen_size(4);
 
-            fw = 540;
-            fh = 640;
+            fw = 580;
+            fh = 750;
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Position = [(screen_width-fw)/2 (screen_height-fh)/2 fw fh];
             app.UIFigure.Name = '纤维指标数值提取';
 
             app.tckstats_Panel = uipanel(app.UIFigure, ...
-                'Title', '', 'Position', [10 10 520 620]);
+                'Title', '', 'Position', [10 10 560 730]);
 
-            y = 590;
+            % --- 文件夹区域 ---
+            y = 625;
             uilabel(app.tckstats_Panel, ...
                 'Position', [10 y 100 22], 'Text', '纤维文件夹');
             app.tckstats_folder_EditField = uieditfield(app.tckstats_Panel, 'text', ...
-                'Editable', 'off', 'Position', [110 y 310 22]);
+                'Editable', 'off', 'Position', [110 y 350 22]);
             app.tckstats_folder_Button = uibutton(app.tckstats_Panel, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @tckstats_folder_ButtonPushed, true), ...
-                'Position', [425 y 35 23], 'Text', '...');
+                'Position', [465 y 35 23], 'Text', '...');
 
-            y = 560;
+            y = 596;
             app.tckstats_scan_Button = uibutton(app.tckstats_Panel, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @tckstats_scan_ButtonPushed, true), ...
                 'Position', [110 y 100 22], 'Text', '检索');
 
-            y = 530;
+            y = 570;
             uilabel(app.tckstats_Panel, ...
                 'Position', [10 y 100 22], 'Text', '文件列表');
             app.tckstats_fileList_TextArea = uitextarea(app.tckstats_Panel, ...
-                'Position', [10 390 500 140], 'Editable', 'off');
+                'Position', [10 390 540 175], 'Editable', 'off');
 
-            y = 360;
+            % --- Scope 切换 ---
+            app.tckstats_scope_ButtonGroup = uibuttongroup(app.tckstats_Panel, ...
+                'Position', [10 362 300 24], ...
+                'SelectionChangedFcn', createCallbackFcn(app, @scope_ButtonGroupSelectionChanged, true));
+            app.tckstats_wholeBrain_Radio = uiradiobutton(app.tckstats_scope_ButtonGroup, ...
+                'Position', [10 2 85 22], 'Text', '全脑分析', 'Value', true);
+            app.tckstats_roi_Radio = uiradiobutton(app.tckstats_scope_ButtonGroup, ...
+                'Position', [100 2 95 22], 'Text', 'ROI纤维筛选');
+
+            % --- ROI 参数面板 ---
+            app.tckstats_roi_Panel = uipanel(app.tckstats_Panel, ...
+                'Position', [10 264 540 90], 'Visible', 'off', 'Title', '');
+
+            uilabel(app.tckstats_roi_Panel, ...
+                'Position', [5 68 65 22], 'Text', 'mask列表');
+            app.tckstats_roi_list_ListBox = uilistbox(app.tckstats_roi_Panel, ...
+                'Position', [5 22 310 44], 'Items', {'(无 mask，请添加)'}, ...
+                'Value', 1, 'ItemsData', 1, 'multiselect', 'on');
+
+            app.tckstats_roi_add_Button = uibutton(app.tckstats_roi_Panel, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @roi_add_ButtonPushed, true), ...
+                'Position', [320 68 55 22], 'Text', '添加');
+            app.tckstats_roi_del_Button = uibutton(app.tckstats_roi_Panel, 'push', ...
+                'ButtonPushedFcn', createCallbackFcn(app, @roi_del_ButtonPushed, true), ...
+                'Position', [378 68 55 22], 'Text', '删除');
+
+            app.tckstats_ends_only_CheckBox = uicheckbox(app.tckstats_roi_Panel, ...
+                'Position', [5 0 145 22], 'Text', '以ROI为端点 (-ends_only)');
+            app.tckstats_ordered_CheckBox = uicheckbox(app.tckstats_roi_Panel, ...
+                'Position', [155 0 150 22], 'Text', '按顺序通过 (-include_ordered)');
+
+            % --- 统计量 ---
+            y = 226;
             uilabel(app.tckstats_Panel, ...
                 'Position', [10 y 80 18], 'Text', '统计量', 'FontWeight', 'bold');
-            y = 335;
+            y = 202;
             app.tckstats_mean_CheckBox = uicheckbox(app.tckstats_Panel, ...
                 'Position', [15 y 60 22], 'Text', 'mean', 'Value', true);
             app.tckstats_median_CheckBox = uicheckbox(app.tckstats_Panel, ...
@@ -344,44 +555,47 @@ classdef tckstats < matlab.apps.AppBase
             app.tckstats_count_CheckBox = uicheckbox(app.tckstats_Panel, ...
                 'Position', [385 y 70 22], 'Text', 'count', 'Value', true);
 
-            y = 305;
+            % --- 高级选项 ---
+            y = 176;
             uilabel(app.tckstats_Panel, ...
                 'Position', [10 y 80 18], 'Text', '高级选项', 'FontWeight', 'bold');
 
-            y = 278;
+            y = 152;
             app.tckstats_histogram_CheckBox = uicheckbox(app.tckstats_Panel, ...
                 'Position', [15 y 100 22], 'Text', '输出直方图', ...
                 'ValueChangedFcn', createCallbackFcn(app, @tckstats_histogram_CheckBoxValueChanged, true));
             app.tckstats_histogram_EditField = uieditfield(app.tckstats_Panel, 'text', ...
-                'Position', [115 y 300 22], 'Enable', 'off');
+                'Position', [115 y 330 22], 'Enable', 'off');
             app.tckstats_histogram_Button = uibutton(app.tckstats_Panel, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @tckstats_histogram_ButtonPushed, true), ...
-                'Position', [420 y 35 23], 'Text', '...', 'Enable', 'off');
+                'Position', [450 y 35 23], 'Text', '...', 'Enable', 'off');
 
-            y = 250;
+            y = 126;
             app.tckstats_dump_CheckBox = uicheckbox(app.tckstats_Panel, ...
                 'Position', [15 y 100 22], 'Text', '导出长度', ...
                 'ValueChangedFcn', createCallbackFcn(app, @tckstats_dump_CheckBoxValueChanged, true));
             app.tckstats_dump_EditField = uieditfield(app.tckstats_Panel, 'text', ...
-                'Position', [115 y 300 22], 'Enable', 'off');
+                'Position', [115 y 330 22], 'Enable', 'off');
             app.tckstats_dump_Button = uibutton(app.tckstats_Panel, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @tckstats_dump_ButtonPushed, true), ...
-                'Position', [420 y 35 23], 'Text', '...', 'Enable', 'off');
+                'Position', [450 y 35 23], 'Text', '...', 'Enable', 'off');
 
-            y = 225;
+            y = 102;
             app.tckstats_weight_CheckBox = uicheckbox(app.tckstats_Panel, ...
-                'Position', [15 y 240 22], 'Text', '使用 SIFT2 权重 (自动匹配 sift_weight.txt)', 'Value', true);
+                'Position', [15 y 260 22], 'Text', '使用 SIFT2 权重 (自动匹配 sift_weight.txt)', 'Value', true);
 
-            y = 195;
+            % --- 输出文件夹 ---
+            y = 76;
             uilabel(app.tckstats_Panel, ...
                 'Position', [10 y 100 22], 'Text', '输出文件夹');
             app.tckstats_output_EditField = uieditfield(app.tckstats_Panel, 'text', ...
-                'Position', [110 y 310 22], 'Editable', 'off');
+                'Position', [110 y 350 22], 'Editable', 'off');
             app.tckstats_output_Button = uibutton(app.tckstats_Panel, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @tckstats_output_ButtonPushed, true), ...
-                'Position', [425 y 35 23], 'Text', '...');
+                'Position', [465 y 35 23], 'Text', '...');
 
-            y = 155;
+            % --- 按钮 ---
+            y = 44;
             app.start_Button = uibutton(app.tckstats_Panel, 'push', ...
                 'ButtonPushedFcn', createCallbackFcn(app, @start_ButtonPushed, true), ...
                 'Position', [(fw-200)/2-10 y 200 30], 'Text', '开始处理', 'FontSize', 13);
@@ -390,15 +604,13 @@ classdef tckstats < matlab.apps.AppBase
                 'ButtonPushedFcn', createCallbackFcn(app, @import_ButtonPushed, true), ...
                 'Position', [(fw-200)/2+200 y 40 30], 'Text', '导入', 'FontSize', 12);
 
-            y = 128;
-            app.tckstats_status_Label = uilabel(app.tckstats_Panel, ...
-                'Position', [10 y 500 22], ...
-                'HorizontalAlignment', 'center', 'Text', '就绪');
-
-            uilabel(app.tckstats_Panel, ...
-                'Position', [10 108 100 18], 'Text', '结果预览', 'FontWeight', 'bold');
+            % --- 结果区域 ---
             app.tckstats_result_TextArea = uitextarea(app.tckstats_Panel, ...
-                'Position', [10 10 500 95], 'Editable', 'off');
+                'Position', [10 2 540 18], 'Editable', 'off');
+
+            app.tckstats_status_Label = uilabel(app.tckstats_Panel, ...
+                'Position', [10 24 540 18], ...
+                'HorizontalAlignment', 'center', 'Text', '就绪');
 
             app.UIFigure.Visible = 'on';
         end
